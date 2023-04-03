@@ -13,7 +13,7 @@ import (
 // Options provide optional parameters for client.
 type Options struct {
 	AwsConfig                  aws.Config
-	Printf                     FuncPrintf // defaults to e.options.Printf
+	Printf                     FuncPrintf // defaults to log.Printf
 	PrefixSecretsManager       string     // defaults to "aws-secretsmanager"
 	QuerySecretsManager        bool
 	CrashOnSecretsManagerError bool
