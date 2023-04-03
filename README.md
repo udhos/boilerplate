@@ -1,3 +1,7 @@
+[![license](http://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/udhos/boilerplate/blob/main/LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/udhos/boilerplate)](https://goreportcard.com/report/github.com/udhos/boilerplate)
+[![Go Reference](https://pkg.go.dev/badge/github.com/udhos/boilerplate.svg)](https://pkg.go.dev/github.com/udhos/boilerplate)
+
 # boilerplate
 
 * [envconfig](#envconfig)
