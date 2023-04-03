@@ -17,8 +17,16 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 ### Create a function to load app configuration from env vars
 
 See example function `newConfig()` below.
+Or look at [examples/envconfig-example/config.go].
 
 ```
+import (
+	"log"
+
+	"github.com/udhos/boilerplate/awsconfig"
+	"github.com/udhos/boilerplate/envconfig"
+)
+
 type appConfig struct {
 	databaseURI  string
 	databaseCode int
