@@ -19,6 +19,7 @@ type Options struct {
 	CrashOnSecretsManagerError bool
 }
 
+// DefaultSecretsManagerPrefix defines default prefix for AWS secrets manager.
 const DefaultSecretsManagerPrefix = "aws-secretsmanager"
 
 // FuncPrintf is a helper type for logging function.
