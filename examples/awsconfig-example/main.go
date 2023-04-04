@@ -16,7 +16,11 @@ func main() {
 		log.Printf("could not get aws config: %v", errCfg)
 	}
 
-	creds, errCreds := awsCfg.Credentials.Retrieve(context.TODO())
+	fmt.Printf("STS account ID: %s\n", awsCfg.StsAccountID)
+	fmt.Printf("STS ARN: %s\n", awsCfg.StsArn)
+	fmt.Printf("STS UserId: %s\n", awsCfg.StsUserID)
+
+	creds, errCreds := awsCfg.AwsConfig.Credentials.Retrieve(context.TODO())
 	if errCreds != nil {
 		log.Printf("could not get aws credentials: %v", errCreds)
 	}

@@ -19,14 +19,24 @@ type Options struct {
 	Printf          FuncPrintf // defaults to log.Printf
 }
 
+// Output holds returned result.
+type Output struct {
+	AwsConfig    aws.Config // AwsConfig holds the desired configuration.
+	StsAccountID string
+	StsArn       string
+	StsUserID    string
+}
+
 // FuncPrintf is a helper type for logging function.
 type FuncPrintf func(format string, v ...any)
 
 // AwsConfig provides a configuration to initialize clients for AWS services.
 // If roleArn is provided, it assumes the role.
 // Otherwise it works with default credentials.
-func AwsConfig(opt Options) (aws.Config, error) {
+func AwsConfig(opt Options) (Output, error) {
 	const me = "awsConfig"
+
+	var out Output
 
 	if opt.Printf == nil {
 		opt.Printf = log.Printf
@@ -36,7 +46,7 @@ func AwsConfig(opt Options) (aws.Config, error) {
 		config.WithRegion(opt.Region))
 	if errConfig != nil {
 		opt.Printf("%s: load config: %v", me, errConfig)
-		return cfg, errConfig
+		return out, errConfig
 	}
 
 	if opt.RoleArn != "" {
@@ -59,10 +69,12 @@ func AwsConfig(opt Options) (aws.Config, error) {
 		)
 		if errConfig2 != nil {
 			opt.Printf("%s: AssumeRole %s: error: %v", me, opt.RoleArn, errConfig2)
-			return cfg, errConfig
+			return out, errConfig
 		}
 		cfg = cfg2
 	}
+
+	out.AwsConfig = cfg
 
 	{
 		// show caller identity
@@ -72,9 +84,13 @@ func AwsConfig(opt Options) (aws.Config, error) {
 		if errSts != nil {
 			opt.Printf("%s: GetCallerIdentity: error: %v", me, errSts)
 		} else {
-			opt.Printf("%s: GetCallerIdentity: Account=%s ARN=%s UserId=%s", me, *respSts.Account, *respSts.Arn, *respSts.UserId)
+			out.StsAccountID = *respSts.Account
+			out.StsArn = *respSts.Arn
+			out.StsUserID = *respSts.UserId
+			opt.Printf("%s: GetCallerIdentity: Account=%s ARN=%s UserId=%s",
+				me, out.StsAccountID, out.StsArn, out.StsUserID)
 		}
 	}
 
-	return cfg, nil
+	return out, nil
 }
