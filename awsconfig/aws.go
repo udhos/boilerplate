@@ -16,6 +16,7 @@ type Options struct {
 	Region          string
 	RoleArn         string
 	RoleSessionName string
+	RoleExternalID  string
 	Printf          FuncPrintf // defaults to log.Printf
 }
 
@@ -34,7 +35,7 @@ type FuncPrintf func(format string, v ...any)
 // If roleArn is provided, it assumes the role.
 // Otherwise it works with default credentials.
 func AwsConfig(opt Options) (Output, error) {
-	const me = "awsConfig"
+	const me = "AwsConfig"
 
 	var out Output
 
@@ -63,6 +64,9 @@ func AwsConfig(opt Options) (Output, error) {
 					opt.RoleArn,
 					func(o *stscreds.AssumeRoleOptions) {
 						o.RoleSessionName = opt.RoleSessionName
+						if opt.RoleExternalID != "" {
+							o.ExternalID = aws.String(opt.RoleExternalID)
+						}
 					},
 				)),
 			),
