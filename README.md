@@ -48,7 +48,7 @@ func newConfig() appConfig {
 
 	envOptions := envconfig.Options{
 		QuerySecretsManager:        true,
-		AwsConfig:                  awsConf,
+		AwsConfig:                  awsConf.AwsConfig,
 		CrashOnSecretsManagerError: true,
 	}
 
