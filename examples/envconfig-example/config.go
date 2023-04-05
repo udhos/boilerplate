@@ -9,6 +9,7 @@ import (
 
 type appConfig struct {
 	databaseURI  string
+	bogus        string
 	databaseCode int
 	databaseTidy bool
 }
@@ -23,15 +24,16 @@ func newConfig() appConfig {
 	}
 
 	envOptions := envconfig.Options{
-		QuerySecretsManager:        true,
-		AwsConfig:                  awsConf.AwsConfig,
-		CrashOnSecretsManagerError: true,
+		QuerySecretsManager: true,
+		QueryParameterStore: true,
+		AwsConfig:           awsConf.AwsConfig,
 	}
 
 	env := envconfig.New(envOptions)
 
 	return appConfig{
 		databaseURI:  env.String("DB_URI", "http://test-db"),
+		bogus:        env.String("DB_URI", "http://test-db"), // test cache
 		databaseCode: env.Int("DB_CODE", 42),
 		databaseTidy: env.Bool("DB_TIDY", false),
 	}

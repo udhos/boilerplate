@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -12,15 +13,20 @@ import (
 
 // Options provide optional parameters for client.
 type Options struct {
-	AwsConfig                  aws.Config
-	Printf                     FuncPrintf // defaults to log.Printf
-	PrefixSecretsManager       string     // defaults to "aws-secretsmanager"
-	QuerySecretsManager        bool
-	CrashOnSecretsManagerError bool
+	AwsConfig            aws.Config
+	Printf               FuncPrintf // defaults to log.Printf
+	PrefixSecretsManager string     // defaults to "aws-secretsmanager"
+	PrefixParameterStore string     // defaults to "aws-parameterstore"
+	QuerySecretsManager  bool
+	QueryParameterStore  bool
+	CrashOnQueryError    bool
 }
 
-// DefaultSecretsManagerPrefix defines default prefix for AWS secrets manager.
-const DefaultSecretsManagerPrefix = "aws-secretsmanager"
+// Define default prefixes for Secrets Manager and Parameter Store.
+const (
+	DefaultSecretsManagerPrefix = "aws-secretsmanager"
+	DefaultParameterStorePrefix = "aws-parameterstore"
+)
 
 // FuncPrintf is a helper type for logging function.
 type FuncPrintf func(format string, v ...any)
@@ -42,6 +48,10 @@ func New(opt Options) *Env {
 		opt.PrefixSecretsManager = DefaultSecretsManagerPrefix
 	}
 
+	if opt.PrefixParameterStore == "" {
+		opt.PrefixParameterStore = DefaultParameterStorePrefix
+	}
+
 	return &Env{
 		options: opt,
 		cache:   map[string]secret{},
@@ -51,11 +61,11 @@ func New(opt Options) *Env {
 func (e *Env) getEnv(name string) string {
 	value := os.Getenv(name)
 
-	if e.options.QuerySecretsManager {
-		if value == "" {
-			return ""
-		}
-		value = e.secretsManagerGet(value)
+	switch {
+	case strings.HasPrefix(value, e.options.PrefixSecretsManager):
+		value = e.query(querySecret, e.options.PrefixSecretsManager, value)
+	case strings.HasPrefix(value, e.options.PrefixParameterStore):
+		value = e.query(queryParameter, e.options.PrefixParameterStore, value)
 	}
 
 	return value

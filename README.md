@@ -23,7 +23,7 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 See example function `newConfig()` below.
 Or look at [examples/envconfig-example/config.go](examples/envconfig-example/config.go).
 
-```
+```go
 import (
 	"log"
 
@@ -47,9 +47,9 @@ func newConfig() appConfig {
 	}
 
 	envOptions := envconfig.Options{
-		QuerySecretsManager:        true,
-		AwsConfig:                  awsConf.AwsConfig,
-		CrashOnSecretsManagerError: true,
+		QuerySecretsManager: true,
+		QueryParameterStore: true,
+		AwsConfig:           awsConf.AwsConfig,
 	}
 
 	env := envconfig.New(envOptions)
@@ -72,6 +72,8 @@ func newConfig() appConfig {
 
 If you prefix env var value with `aws-secretsmanager:`, the envconfig package will try to fetch it from AWS Secrets Manager.
 
+NOTE: You can also use prefix `aws-parameterstore:` to retrieve from AWS Parameter Store.
+
     Format:
     export CONFIG_VAR=aws-secretsmanager:region:secret_name
 
@@ -82,6 +84,8 @@ If you prefix env var value with `aws-secretsmanager:`, the envconfig package wi
     # The secret `database_uri` could store any scalar value like: `http://real-db`
 
 #### Option 3: Retrieve JSON value from AWS Secrets Manager
+
+NOTE: You can also use prefix `aws-parameterstore:` to retrieve from AWS Parameter Store.
 
 If you append ":<json_field>" to env var value, after the secret name, the package envconfig will retrieve the secret from AWS Secrets Manager and will attempt to extract that specific JSON field from the value.
 
