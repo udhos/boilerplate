@@ -21,43 +21,23 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 ### Create a function to load app configuration from env vars
 
 See example function `newConfig()` below.
+
 Or look at [examples/envconfig-example/config.go](examples/envconfig-example/config.go).
 
 ```go
 import (
-	"log"
-
-	"github.com/udhos/boilerplate/awsconfig"
 	"github.com/udhos/boilerplate/envconfig"
 )
 
 type appConfig struct {
 	databaseURI  string
-	bogus        string
 	databaseCode int
 	databaseTidy bool
 }
 
-func newConfig() appConfig {
-
-	awsConfOptions := awsconfig.Options{}
-
-	awsConf, errAwsConf := awsconfig.AwsConfig(awsConfOptions)
-	if errAwsConf != nil {
-		log.Printf("aws config error: %v", errAwsConf)
-	}
-
-	envOptions := envconfig.Options{
-		QuerySecretsManager: true,
-		QueryParameterStore: true,
-		AwsConfig:           awsConf.AwsConfig,
-	}
-
-	env := envconfig.New(envOptions)
-
+func newConfig(env *envconfig.Env) appConfig {
 	return appConfig{
 		databaseURI:  env.String("DB_URI", "http://test-db"),
-		bogus:        env.String("DB_URI", "http://test-db"), // test cache
 		databaseCode: env.Int("DB_CODE", 42),
 		databaseTidy: env.Bool("DB_TIDY", false),
 	}

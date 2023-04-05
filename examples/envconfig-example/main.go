@@ -3,22 +3,41 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+
+	"github.com/udhos/boilerplate/awsconfig"
+	"github.com/udhos/boilerplate/envconfig"
 )
 
 func main() {
-	loadConfig("DB_URI", "aws-secretsmanager:us-east-1:database:uri")
-	loadConfig("DB_URI", "aws-parameterstore:us-east-1:/microservice9/mongodb:uri")
+
+	awsConfOptions := awsconfig.Options{}
+	awsConf, errAwsConf := awsconfig.AwsConfig(awsConfOptions)
+	if errAwsConf != nil {
+		log.Printf("aws config error: %v", errAwsConf)
+	}
+	envOptions := envconfig.Options{
+		QuerySecretsManager: true,
+		QueryParameterStore: true,
+		AwsConfig:           awsConf.AwsConfig,
+	}
+	env := envconfig.New(envOptions)
+
+	loadConfig(env, "DB_URI", "aws-secretsmanager:us-east-1:database:uri")
+	loadConfig(env, "DB_URI", "aws-parameterstore:us-east-1:/microservice9/mongodb:uri")
 }
 
-func loadConfig(envKey, envValue string) {
+func loadConfig(env *envconfig.Env, envKey, envValue string) {
 
 	fmt.Println()
 	fmt.Println("--------------------------------")
 	fmt.Printf("'%s' = '%s'\n", envKey, envValue)
 	fmt.Println()
 
+	// this really should be setup when calling the application, not here
 	os.Setenv(envKey, envValue)
-	cfg := newConfig()
+
+	cfg := newConfig(env)
 	fmt.Printf("'%s' = '%s' => %#v\n", envKey, envValue, cfg)
 }

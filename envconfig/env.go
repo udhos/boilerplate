@@ -62,9 +62,9 @@ func (e *Env) getEnv(name string) string {
 	value := os.Getenv(name)
 
 	switch {
-	case strings.HasPrefix(value, e.options.PrefixSecretsManager):
+	case e.options.QuerySecretsManager && strings.HasPrefix(value, e.options.PrefixSecretsManager):
 		value = e.query(querySecret, e.options.PrefixSecretsManager, value)
-	case strings.HasPrefix(value, e.options.PrefixParameterStore):
+	case e.options.QueryParameterStore && strings.HasPrefix(value, e.options.PrefixParameterStore):
 		value = e.query(queryParameter, e.options.PrefixParameterStore, value)
 	}
 
