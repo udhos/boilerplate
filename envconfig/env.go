@@ -18,9 +18,7 @@ type Options struct {
 	PrefixSecretsManager string     // defaults to "aws-secretsmanager"
 	PrefixParameterStore string     // defaults to "aws-parameterstore"
 	PrefixS3             string     // defaults to "aws-s3"
-	QuerySecretsManager  bool
-	QueryParameterStore  bool
-	QueryS3              bool
+	DisableQueryStore    bool
 	CrashOnQueryError    bool
 }
 
@@ -68,12 +66,16 @@ func New(opt Options) *Env {
 func (e *Env) getEnv(name string) string {
 	value := os.Getenv(name)
 
+	if e.options.DisableQueryStore {
+		return value
+	}
+
 	switch {
-	case e.options.QuerySecretsManager && strings.HasPrefix(value, e.options.PrefixSecretsManager):
+	case strings.HasPrefix(value, e.options.PrefixSecretsManager):
 		value = e.query(querySecret, e.options.PrefixSecretsManager, value)
-	case e.options.QueryParameterStore && strings.HasPrefix(value, e.options.PrefixParameterStore):
+	case strings.HasPrefix(value, e.options.PrefixParameterStore):
 		value = e.query(queryParameter, e.options.PrefixParameterStore, value)
-	case e.options.QueryS3 && strings.HasPrefix(value, e.options.PrefixS3):
+	case strings.HasPrefix(value, e.options.PrefixS3):
 		value = e.query(queryS3, e.options.PrefixS3, value)
 	}
 

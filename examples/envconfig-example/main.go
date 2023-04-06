@@ -18,10 +18,7 @@ func main() {
 		log.Printf("aws config error: %v", errAwsConf)
 	}
 	envOptions := envconfig.Options{
-		QuerySecretsManager: true,
-		QueryParameterStore: true,
-		QueryS3:             true,
-		AwsConfig:           awsConf.AwsConfig,
+		AwsConfig: awsConf.AwsConfig,
 	}
 	env := envconfig.New(envOptions)
 
