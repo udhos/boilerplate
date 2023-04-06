@@ -20,12 +20,14 @@ func main() {
 	envOptions := envconfig.Options{
 		QuerySecretsManager: true,
 		QueryParameterStore: true,
+		QueryS3:             true,
 		AwsConfig:           awsConf.AwsConfig,
 	}
 	env := envconfig.New(envOptions)
 
 	loadConfig(env, "DB_URI", "aws-secretsmanager:us-east-1:database:uri")
 	loadConfig(env, "DB_URI", "aws-parameterstore:us-east-1:/microservice9/mongodb:uri")
+	loadConfig(env, "DB_URI", "aws-s3:us-east-1:acredito,app7/mongodb.yaml:uri")
 }
 
 func loadConfig(env *envconfig.Env, envKey, envValue string) {

@@ -17,8 +17,10 @@ type Options struct {
 	Printf               FuncPrintf // defaults to log.Printf
 	PrefixSecretsManager string     // defaults to "aws-secretsmanager"
 	PrefixParameterStore string     // defaults to "aws-parameterstore"
+	PrefixS3             string     // defaults to "aws-s3"
 	QuerySecretsManager  bool
 	QueryParameterStore  bool
+	QueryS3              bool
 	CrashOnQueryError    bool
 }
 
@@ -26,6 +28,7 @@ type Options struct {
 const (
 	DefaultSecretsManagerPrefix = "aws-secretsmanager"
 	DefaultParameterStorePrefix = "aws-parameterstore"
+	DefaultS3Prefix             = "aws-s3"
 )
 
 // FuncPrintf is a helper type for logging function.
@@ -52,6 +55,10 @@ func New(opt Options) *Env {
 		opt.PrefixParameterStore = DefaultParameterStorePrefix
 	}
 
+	if opt.PrefixS3 == "" {
+		opt.PrefixS3 = DefaultS3Prefix
+	}
+
 	return &Env{
 		options: opt,
 		cache:   map[string]secret{},
@@ -66,6 +73,8 @@ func (e *Env) getEnv(name string) string {
 		value = e.query(querySecret, e.options.PrefixSecretsManager, value)
 	case e.options.QueryParameterStore && strings.HasPrefix(value, e.options.PrefixParameterStore):
 		value = e.query(queryParameter, e.options.PrefixParameterStore, value)
+	case e.options.QueryS3 && strings.HasPrefix(value, e.options.PrefixS3):
+		value = e.query(queryS3, e.options.PrefixS3, value)
 	}
 
 	return value

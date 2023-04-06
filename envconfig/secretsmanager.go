@@ -3,13 +3,13 @@ package envconfig
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"gopkg.in/yaml.v2"
 )
 
 // aws-secretsmanager:region:name:json_field
@@ -76,7 +76,7 @@ func (e *Env) query(q queryFunc, prefix, key string) string {
 
 	value := map[string]string{}
 
-	errJSON := json.Unmarshal([]byte(secretString), &value)
+	errJSON := yaml.Unmarshal([]byte(secretString), &value)
 	if errJSON != nil {
 		e.options.Printf("%s: json error: key='%s': %v",
 			me, key, errJSON)
