@@ -24,6 +24,7 @@ aws-secretsmanager: CONFIG_VAR=aws-secretsmanager:region:secret_name[:field_name
 aws-parameterstore: CONFIG_VAR=aws-parameterstore:region:parameter_name[:field_name]
 aws-s3:             CONFIG_VAR=aws-s3:region:bucket_name,object_name[:field_name]
 aws-dynamodb:       CONFIG_VAR=aws-dynamodb:region:table_name,key_name,key_value,value_attr[:field_name]
+aws-lambda:         CONFIG_VAR=aws-lambda:region:func_name,key_name,key_value,body_field[:field_name]
 ```
 
 `:field_name` is optional. If provided, the object will be decoded as JSON/YAML and the specified field name will be extracted.
@@ -34,8 +35,25 @@ Examples:
 export DB_URI=aws-secretsmanager:us-east-1:database:uri
 export DB_URI=aws-parameterstore:us-east-1:/microservice9/mongodb:uri
 export DB_URI=aws-s3:us-east-1:bucketParameters,app7/mongodb.yaml:uri
-export DB_URI=aws-dynamodb:us-east-1:parameters,parameter,mongodb,value[:uri]
+export DB_URI=aws-dynamodb:us-east-1:parameters,parameter,mongodb,value:uri
+export DB_URI=aws-lambda:us-east-1:parameters,parameter,mongodb,body:uri
 ```
+
+### DynamoDB
+
+    export DB_URI=aws-dynamodb:us-east-1:parameters,parameter,mongodb,value:uri
+    #           Table: parameters
+    #             Key: parameter=mongodb
+    #  Attribute name: value
+    # Attribute value: {"uri":"mongodb://127.0.0.1:27001/?retryWrites=false"}
+
+### Lambda
+
+    export DB_URI=aws-lambda:us-east-1:parameters,parameter,mongodb,body:uri
+    #       Function: parameters
+    #        Request: {"parameter":"mongodb"}
+    # Response field: body
+    #       Response: {"statusCode": 200,"body": "{\"uri\": \"mongodb://localhost:27017/?retryWrites=false\"}"}
 
 ## Usage
 

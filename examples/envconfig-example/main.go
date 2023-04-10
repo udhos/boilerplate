@@ -26,6 +26,7 @@ func main() {
 	loadConfig(env, "DB_URI", "aws-parameterstore:us-east-1:/microservice9/mongodb:uri")
 	loadConfig(env, "DB_URI", "aws-s3:us-east-1:acredito,app7/mongodb.yaml:uri")
 	loadConfig(env, "DB_URI", "aws-dynamodb:us-east-1:parameters,parameter,mongodb,value:uri")
+	loadConfig(env, "DB_URI", "aws-lambda:us-east-1:parameters,parameter,mongodb,body:uri")
 }
 
 func loadConfig(env *envconfig.Env, envKey, envValue string) {
