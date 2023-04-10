@@ -6,6 +6,8 @@
 
 * [envconfig](#envconfig)
   * [Supported Stores](#supported-stores)
+    * [DynamoDB](#dynamodb)
+    * [Lambda](#lambda)
   * [Usage](#usage)
     * [Create a function to load app configuration from env vars](#create-a-function-to-load-app-configuration-from-env-vars)
     * [How to define env var DB\_URI](#how-to-define-env-var-db_uri)
