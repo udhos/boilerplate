@@ -18,6 +18,7 @@ type Options struct {
 	PrefixSecretsManager string     // defaults to "aws-secretsmanager"
 	PrefixParameterStore string     // defaults to "aws-parameterstore"
 	PrefixS3             string     // defaults to "aws-s3"
+	PrefixDynamoDb       string     // defaults to "aws-dynamodb"
 	DisableQueryStore    bool
 	CrashOnQueryError    bool
 }
@@ -27,6 +28,7 @@ const (
 	DefaultSecretsManagerPrefix = "aws-secretsmanager"
 	DefaultParameterStorePrefix = "aws-parameterstore"
 	DefaultS3Prefix             = "aws-s3"
+	DefaultDynamoDbPrefix       = "aws-dynamodb"
 )
 
 // FuncPrintf is a helper type for logging function.
@@ -57,6 +59,10 @@ func New(opt Options) *Env {
 		opt.PrefixS3 = DefaultS3Prefix
 	}
 
+	if opt.PrefixDynamoDb == "" {
+		opt.PrefixDynamoDb = DefaultDynamoDbPrefix
+	}
+
 	return &Env{
 		options: opt,
 		cache:   map[string]secret{},
@@ -77,6 +83,8 @@ func (e *Env) getEnv(name string) string {
 		value = e.query(queryParameter, e.options.PrefixParameterStore, value)
 	case strings.HasPrefix(value, e.options.PrefixS3):
 		value = e.query(queryS3, e.options.PrefixS3, value)
+	case strings.HasPrefix(value, e.options.PrefixDynamoDb):
+		value = e.query(queryDynamoDb, e.options.PrefixDynamoDb, value)
 	}
 
 	return value
