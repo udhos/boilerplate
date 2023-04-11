@@ -8,6 +8,7 @@
   * [Supported Stores](#supported-stores)
     * [DynamoDB](#dynamodb)
     * [Lambda](#lambda)
+    * [HTTP](#http)
   * [Usage](#usage)
     * [Create a function to load app configuration from env vars](#create-a-function-to-load-app-configuration-from-env-vars)
     * [How to define env var DB\_URI](#how-to-define-env-var-db_uri)
@@ -27,6 +28,7 @@ aws-parameterstore: CONFIG_VAR=aws-parameterstore:region:parameter_name[:field_n
 aws-s3:             CONFIG_VAR=aws-s3:region:bucket_name,object_name[:field_name]
 aws-dynamodb:       CONFIG_VAR=aws-dynamodb:region:table_name,key_name,key_value,value_attr[:field_name]
 aws-lambda:         CONFIG_VAR=aws-lambda:region:func_name,key_name,key_value,body_field[:field_name]
+#http:              CONFIG_VAR=#http::method,proto,host,path,body_base64,token[:field_name]
 ```
 
 `:field_name` is optional. If provided, the object will be decoded as JSON/YAML and the specified field name will be extracted.
@@ -39,6 +41,11 @@ export DB_URI=aws-parameterstore:us-east-1:/microservice9/mongodb:uri
 export DB_URI=aws-s3:us-east-1:bucketParameters,app7/mongodb.yaml:uri
 export DB_URI=aws-dynamodb:us-east-1:parameters,parameter,mongodb,value:uri
 export DB_URI=aws-lambda:us-east-1:parameters,parameter,mongodb,body:uri
+
+echo -n '{"parameter":"mongodb"}' | base64
+eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=
+
+export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,/,eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=,Bearer secret:uri
 ```
 
 ### DynamoDB
@@ -56,6 +63,17 @@ export DB_URI=aws-lambda:us-east-1:parameters,parameter,mongodb,body:uri
     #        Request: {"parameter":"mongodb"}
     # Response field: body
     #       Response: {"statusCode": 200,"body": "{\"uri\": \"mongodb://localhost:27017/?retryWrites=false\"}"}
+
+### HTTP
+
+    export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,/,eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=,Bearer secret:uri
+    #   Method: GET
+    # Protocol: https
+    #     Host: tttt.lambda-url.us-east-1.on.aws
+    #     Path: /
+    #     Body: {"parameter":"mongodb"} (base64 encoded as eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=)
+    #    Token: Bearer secret
+    # Response: {"uri":"mongodb://127.0.0.1:27001/?retryWrites=false"}
 
 ## Usage
 
