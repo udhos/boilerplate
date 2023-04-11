@@ -8,12 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/udhos/boilerplate/awsconfig"
 )
 
 // Options provide optional parameters for client.
 type Options struct {
-	AwsConfig            aws.Config
 	Printf               FuncPrintf // defaults to log.Printf
 	PrefixSecretsManager string     // defaults to "aws-secretsmanager"
 	PrefixParameterStore string     // defaults to "aws-parameterstore"
@@ -21,6 +20,8 @@ type Options struct {
 	PrefixDynamoDb       string     // defaults to "aws-dynamodb"
 	PrefixLambda         string     // defaults to "aws-lambda"
 	PrefixHTTP           string     // defaults to "#http"
+	RoleArn              string
+	RoleSessionName      string
 	DisableQueryStore    bool
 	CrashOnQueryError    bool
 }
@@ -40,8 +41,9 @@ type FuncPrintf func(format string, v ...any)
 
 // Env holds context information for loading confing from env vars.
 type Env struct {
-	options Options
-	cache   map[string]secret
+	options    Options
+	cache      map[string]secret
+	awsConfSrc *awsConfigSource
 }
 
 // New creates a client for loading config from env vars.
@@ -75,9 +77,16 @@ func New(opt Options) *Env {
 		opt.PrefixHTTP = DefaultHTTPPrefix
 	}
 
+	awsConfOptions := awsconfig.Options{
+		Printf:          awsconfig.FuncPrintf(opt.Printf),
+		RoleArn:         opt.RoleArn,
+		RoleSessionName: opt.RoleSessionName,
+	}
+
 	return &Env{
-		options: opt,
-		cache:   map[string]secret{},
+		options:    opt,
+		cache:      map[string]secret{},
+		awsConfSrc: &awsConfigSource{awsConfigOptions: awsConfOptions},
 	}
 }
 

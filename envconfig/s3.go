@@ -11,13 +11,18 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-func queryS3(awsConfig aws.Config, bucketAndKey string) (string, error) {
+func queryS3(getAwsConfig awsConfigSolver, bucketAndKey string) (string, error) {
 	const me = "queryS3"
 
 	bucketName, objectKey, found := strings.Cut(bucketAndKey, ",")
 	if !found {
 		return "", fmt.Errorf("%s: bad bucket object, expecting 'bucket,key' - got: '%s'",
 			me, bucketAndKey)
+	}
+
+	awsConfig, errAwsConfig := getAwsConfig.get()
+	if errAwsConfig != nil {
+		return "", errAwsConfig
 	}
 
 	s3client := s3.NewFromConfig(awsConfig)

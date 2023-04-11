@@ -13,7 +13,7 @@ import (
 )
 
 // aws-dynamodb:region:table_name,key_name,key_value,value_attr[:field_name]
-func queryDynamoDb(awsConfig aws.Config, dynamoOptions string) (string, error) {
+func queryDynamoDb(getAwsConfig awsConfigSolver, dynamoOptions string) (string, error) {
 	const me = "queryDynamoDb"
 
 	options := strings.SplitN(dynamoOptions, ",", 4)
@@ -27,14 +27,19 @@ func queryDynamoDb(awsConfig aws.Config, dynamoOptions string) (string, error) {
 	keyValue := options[2]
 	attrField := options[3]
 
+	awsConfig, errAwsConfig := getAwsConfig.get()
+	if errAwsConfig != nil {
+		return "", errAwsConfig
+	}
+
+	dc := dynamodb.NewFromConfig(awsConfig)
+
 	av, errMarshal := attributevalue.Marshal(keyValue)
 	if errMarshal != nil {
 		return "", errMarshal
 	}
 
 	key := map[string]types.AttributeValue{keyName: av}
-
-	dc := dynamodb.NewFromConfig(awsConfig)
 
 	response, errGet := dc.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		Key: key, TableName: aws.String(table),

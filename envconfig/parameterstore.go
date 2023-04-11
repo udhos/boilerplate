@@ -8,8 +8,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 )
 
-func queryParameter(awsConfig aws.Config, parameterName string) (string, error) {
+func queryParameter(getAwsConfig awsConfigSolver, parameterName string) (string, error) {
 	const me = "queryParameter"
+
+	awsConfig, errAwsConfig := getAwsConfig.get()
+	if errAwsConfig != nil {
+		return "", errAwsConfig
+	}
 
 	sm := ssm.NewFromConfig(awsConfig)
 

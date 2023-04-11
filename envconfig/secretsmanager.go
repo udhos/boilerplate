@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/udhos/boilerplate/awsconfig"
 	"gopkg.in/yaml.v2"
 )
 
@@ -150,7 +151,9 @@ func (e *Env) retrieve(q queryFunc, region, secretName, field string) (string, e
 	//
 	// retrieve from secrets manager
 	//
-	value, errSecret := q(e.options.AwsConfig, secretName)
+	e.awsConfSrc.awsConfigOptions.Region = region
+
+	value, errSecret := q(e.awsConfSrc, secretName)
 	if errSecret != nil {
 		e.options.Printf("%s: secret error: %v", me, errSecret)
 		return value, errSecret
@@ -176,10 +179,38 @@ func (e *Env) retrieve(q queryFunc, region, secretName, field string) (string, e
 	return secretString, nil
 }
 
-type queryFunc func(awsConfig aws.Config, name string) (string, error)
+type awsConfigSource struct {
+	awsConfigOptions awsconfig.Options
+}
 
-func querySecret(awsConfig aws.Config, secretName string) (string, error) {
+func (s *awsConfigSource) get() (aws.Config, error) {
+	output, err := awsconfig.AwsConfig(s.awsConfigOptions)
+	return output.AwsConfig, err
+}
+
+type awsConfigSolver interface {
+	get() (aws.Config, error)
+}
+
+type queryFunc func(getAwsConfig awsConfigSolver, name string) (string, error)
+
+/*
+func fieldRegion(s string) string {
+	fields := strings.SplitN(s, ":", 2)
+	if len(fields) < 2 {
+		return ""
+	}
+	return fields[1]
+}
+*/
+
+func querySecret(getAwsConfig awsConfigSolver, secretName string) (string, error) {
 	const me = "querySecret"
+
+	awsConfig, errAwsConfig := getAwsConfig.get()
+	if errAwsConfig != nil {
+		return "", errAwsConfig
+	}
 
 	sm := secretsmanager.NewFromConfig(awsConfig)
 

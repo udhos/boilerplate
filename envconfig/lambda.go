@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"gopkg.in/yaml.v2"
 )
@@ -19,7 +18,7 @@ export DB_URI=aws-lambda:us-east-1:parameters,parameter,mongodb,body:uri
 # Response field: body
 #       Response: {"statusCode": 200,"body": "{\"uri\": \"mongodb://localhost:27017/?retryWrites=false\"}"}
 */
-func queryLambda(awsConfig aws.Config, dynamoOptions string) (string, error) {
+func queryLambda(getAwsConfig awsConfigSolver, dynamoOptions string) (string, error) {
 	const me = "queryLambda"
 
 	options := strings.SplitN(dynamoOptions, ",", 4)
@@ -36,6 +35,11 @@ func queryLambda(awsConfig aws.Config, dynamoOptions string) (string, error) {
 	request := fmt.Sprintf(`{"%s":"%s"}`, keyName, keyValue)
 
 	requestBytes := []byte(request)
+
+	awsConfig, errAwsConfig := getAwsConfig.get()
+	if errAwsConfig != nil {
+		return "", errAwsConfig
+	}
 
 	clientLambda := lambda.NewFromConfig(awsConfig)
 

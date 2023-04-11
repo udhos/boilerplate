@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
 )
 
 /*
@@ -23,7 +21,7 @@ export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,/,eyJwYXJhbWV0ZX
 #    Token: Bearer secret
 # Response: {"uri":"mongodb://127.0.0.1:27001/?retryWrites=false"}
 */
-func queryHTTP(unused aws.Config, httpOptions string) (string, error) {
+func queryHTTP(unused awsConfigSolver, httpOptions string) (string, error) {
 	const me = "queryHTTP"
 
 	options := strings.SplitN(httpOptions, ",", 6)

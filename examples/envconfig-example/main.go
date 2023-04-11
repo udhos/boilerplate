@@ -5,24 +5,27 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
-	"github.com/udhos/boilerplate/awsconfig"
 	"github.com/udhos/boilerplate/envconfig"
 )
 
 func main() {
 
-	awsConfOptions := awsconfig.Options{}
-	awsConf, errAwsConf := awsconfig.AwsConfig(awsConfOptions)
-	if errAwsConf != nil {
-		log.Printf("aws config error: %v", errAwsConf)
-	}
+	me := filepath.Base(os.Args[0])
+
+	roleArn := os.Getenv("ROLE_ARN")
+
+	log.Printf("ROLE_ARN='%s'", roleArn)
+
 	envOptions := envconfig.Options{
-		AwsConfig: awsConf.AwsConfig,
+		RoleSessionName: me,
+		RoleArn:         roleArn,
 	}
 	env := envconfig.New(envOptions)
 
-	loadConfig(env, "DB_URI", "aws-secretsmanager:us-east-1:database:uri")
+	//loadConfig(env, "DB_URI", "aws-secretsmanager:us-east-1:database:uri")
+	loadConfig(env, "DB_URI", "aws-parameterstore:sa-east-1:/microservice9/mongodb:uri")
 	loadConfig(env, "DB_URI", "aws-parameterstore:us-east-1:/microservice9/mongodb:uri")
 	loadConfig(env, "DB_URI", "aws-s3:us-east-1:acredito,app7/mongodb.yaml:uri")
 	loadConfig(env, "DB_URI", "aws-dynamodb:us-east-1:parameters,parameter,mongodb,value:uri")
