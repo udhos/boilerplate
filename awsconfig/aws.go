@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+
+	"github.com/udhos/boilerplate/boilerplate"
 )
 
 // Options provide optional parameters for AwsConfig.
@@ -17,7 +19,7 @@ type Options struct {
 	RoleArn         string
 	RoleSessionName string
 	RoleExternalID  string
-	Printf          FuncPrintf // defaults to log.Printf
+	Printf          boilerplate.FuncPrintf // defaults to log.Printf
 }
 
 // Output holds returned result.
@@ -27,9 +29,6 @@ type Output struct {
 	StsArn       string
 	StsUserID    string
 }
-
-// FuncPrintf is a helper type for logging function.
-type FuncPrintf func(format string, v ...any)
 
 // AwsConfig provides a configuration to initialize clients for AWS services.
 // If roleArn is provided, it assumes the role.

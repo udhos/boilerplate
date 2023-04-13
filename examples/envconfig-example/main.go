@@ -7,20 +7,26 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/udhos/boilerplate/boilerplate"
 	"github.com/udhos/boilerplate/envconfig"
+	"github.com/udhos/boilerplate/secret"
 )
 
 func main() {
-
 	me := filepath.Base(os.Args[0])
+	log.Println(boilerplate.LongVersion(me))
 
 	roleArn := os.Getenv("ROLE_ARN")
 
 	log.Printf("ROLE_ARN='%s'", roleArn)
 
-	envOptions := envconfig.Options{
+	secretOptions := secret.Options{
 		RoleSessionName: me,
 		RoleArn:         roleArn,
+	}
+	secret := secret.New(secretOptions)
+	envOptions := envconfig.Options{
+		Secret: secret,
 	}
 	env := envconfig.New(envOptions)
 

@@ -5,45 +5,22 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
-	"github.com/udhos/boilerplate/awsconfig"
+	"github.com/udhos/boilerplate/boilerplate"
+	"github.com/udhos/boilerplate/secret"
 )
 
-// Options provide optional parameters for client.
-type Options struct {
-	Printf               FuncPrintf // defaults to log.Printf
-	PrefixSecretsManager string     // defaults to "aws-secretsmanager"
-	PrefixParameterStore string     // defaults to "aws-parameterstore"
-	PrefixS3             string     // defaults to "aws-s3"
-	PrefixDynamoDb       string     // defaults to "aws-dynamodb"
-	PrefixLambda         string     // defaults to "aws-lambda"
-	PrefixHTTP           string     // defaults to "#http"
-	RoleArn              string
-	RoleSessionName      string
-	DisableQueryStore    bool
-	CrashOnQueryError    bool
+// Env holds context for loading config env vars.
+type Env struct {
+	options Options
 }
 
-// Define default prefixes for Secrets Manager and Parameter Store.
-const (
-	DefaultSecretsManagerPrefix = "aws-secretsmanager"
-	DefaultParameterStorePrefix = "aws-parameterstore"
-	DefaultS3Prefix             = "aws-s3"
-	DefaultDynamoDbPrefix       = "aws-dynamodb"
-	DefaultLambdaPrefix         = "aws-lambda"
-	DefaultHTTPPrefix           = "#http"
-)
-
-// FuncPrintf is a helper type for logging function.
-type FuncPrintf func(format string, v ...any)
-
-// Env holds context information for loading confing from env vars.
-type Env struct {
-	options    Options
-	cache      map[string]secret
-	awsConfSrc *awsConfigSource
+// Options defines client options.
+type Options struct {
+	DisableQueryStore bool
+	Secret            *secret.Secret
+	Printf            boilerplate.FuncPrintf
 }
 
 // New creates a client for loading config from env vars.
@@ -53,66 +30,21 @@ func New(opt Options) *Env {
 		opt.Printf = log.Printf
 	}
 
-	if opt.PrefixSecretsManager == "" {
-		opt.PrefixSecretsManager = DefaultSecretsManagerPrefix
-	}
-
-	if opt.PrefixParameterStore == "" {
-		opt.PrefixParameterStore = DefaultParameterStorePrefix
-	}
-
-	if opt.PrefixS3 == "" {
-		opt.PrefixS3 = DefaultS3Prefix
-	}
-
-	if opt.PrefixDynamoDb == "" {
-		opt.PrefixDynamoDb = DefaultDynamoDbPrefix
-	}
-
-	if opt.PrefixLambda == "" {
-		opt.PrefixLambda = DefaultLambdaPrefix
-	}
-
-	if opt.PrefixHTTP == "" {
-		opt.PrefixHTTP = DefaultHTTPPrefix
-	}
-
-	awsConfOptions := awsconfig.Options{
-		Printf:          awsconfig.FuncPrintf(opt.Printf),
-		RoleArn:         opt.RoleArn,
-		RoleSessionName: opt.RoleSessionName,
-	}
-
-	return &Env{
-		options:    opt,
-		cache:      map[string]secret{},
-		awsConfSrc: &awsConfigSource{awsConfigOptions: awsConfOptions},
-	}
+	return &Env{options: opt}
 }
 
 func (e *Env) getEnv(name string) string {
 	value := os.Getenv(name)
 
+	if value == "" {
+		return value
+	}
+
 	if e.options.DisableQueryStore {
 		return value
 	}
 
-	switch {
-	case strings.HasPrefix(value, e.options.PrefixSecretsManager):
-		value = e.query(querySecret, e.options.PrefixSecretsManager, value)
-	case strings.HasPrefix(value, e.options.PrefixParameterStore):
-		value = e.query(queryParameter, e.options.PrefixParameterStore, value)
-	case strings.HasPrefix(value, e.options.PrefixS3):
-		value = e.query(queryS3, e.options.PrefixS3, value)
-	case strings.HasPrefix(value, e.options.PrefixDynamoDb):
-		value = e.query(queryDynamoDb, e.options.PrefixDynamoDb, value)
-	case strings.HasPrefix(value, e.options.PrefixLambda):
-		value = e.query(queryLambda, e.options.PrefixLambda, value)
-	case strings.HasPrefix(value, e.options.PrefixHTTP):
-		value = e.query(queryHTTP, e.options.PrefixHTTP, value)
-	}
-
-	return value
+	return e.options.Secret.Retrieve(value)
 }
 
 // String extracts string from env var.

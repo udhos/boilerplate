@@ -1,5 +1,4 @@
-// Package envconfig loads configuration from env vars.
-package envconfig
+package secret
 
 import (
 	"bytes"

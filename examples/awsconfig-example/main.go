@@ -5,11 +5,17 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/udhos/boilerplate/awsconfig"
+	"github.com/udhos/boilerplate/boilerplate"
 )
 
 func main() {
+	me := filepath.Base(os.Args[0])
+	log.Println(boilerplate.LongVersion(me))
+
 	options := awsconfig.Options{}
 	awsCfg, errCfg := awsconfig.AwsConfig(options)
 	if errCfg != nil {
