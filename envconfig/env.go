@@ -110,3 +110,20 @@ func (e *Env) Int(name string, defaultValue int) int {
 	e.options.Printf("%s=[%s] using %s=%v default=%v", name, str, name, defaultValue, defaultValue)
 	return defaultValue
 }
+
+// Uint64 extracts uint64 value from env var.
+// It returns the provided defaultValue if the env var is empty.
+// The value returned is also recorded in logs.
+func (e *Env) Uint64(name string, defaultValue uint64) uint64 {
+	str := e.getEnv(name)
+	if str != "" {
+		value, errConv := strconv.ParseUint(name, 10, 64)
+		if errConv == nil {
+			e.options.Printf("%s=[%s] using %s=%v default=%v", name, str, name, value, defaultValue)
+			return value
+		}
+		e.options.Printf("bad %s=[%s]: error: %v", name, str, errConv)
+	}
+	e.options.Printf("%s=[%s] using %s=%v default=%v", name, str, name, defaultValue, defaultValue)
+	return defaultValue
+}
