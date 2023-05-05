@@ -26,6 +26,7 @@ type Options struct {
 	RoleArn              string
 	RoleSessionName      string
 	CrashOnQueryError    bool
+	CacheTTL             time.Duration // defaults to 1 minute
 }
 
 // Define default prefixes for Secrets Manager and Parameter Store.
@@ -74,6 +75,10 @@ func New(opt Options) *Secret {
 
 	if opt.PrefixHTTP == "" {
 		opt.PrefixHTTP = DefaultHTTPPrefix
+	}
+
+	if opt.CacheTTL == 0 {
+		opt.CacheTTL = time.Minute
 	}
 
 	awsConfOptions := awsconfig.Options{
@@ -212,10 +217,7 @@ type secret struct {
 }
 
 func (s *Secret) retrieve(q queryFunc, region, secretName, field string) (string, error) {
-	const (
-		me       = "retrieve"
-		cacheTTL = time.Minute
-	)
+	const me = "retrieve"
 
 	var cacheKey string
 	var secretString string
@@ -229,11 +231,11 @@ func (s *Secret) retrieve(q queryFunc, region, secretName, field string) (string
 		if found {
 			// cache hit
 			elapsed := time.Since(cached.created)
-			if elapsed < cacheTTL {
+			if elapsed < s.options.CacheTTL {
 				// live entry
 				secretString = cached.value
 				s.options.Printf("%s: from cache: %s=%s (elapsed=%s TTL=%s)",
-					me, cacheKey, secretString, elapsed, cacheTTL)
+					me, cacheKey, secretString, elapsed, s.options.CacheTTL)
 				return secretString, nil
 			}
 			// stale entry

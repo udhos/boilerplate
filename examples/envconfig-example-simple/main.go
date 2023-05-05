@@ -9,7 +9,6 @@ import (
 
 	"github.com/udhos/boilerplate/boilerplate"
 	"github.com/udhos/boilerplate/envconfig"
-	"github.com/udhos/boilerplate/secret"
 )
 
 // You should really put all your config in a single location.
@@ -32,24 +31,12 @@ func main() {
 	me := filepath.Base(os.Args[0])
 	log.Println(boilerplate.LongVersion(me))
 
-	roleArn := os.Getenv("ROLE_ARN")
-
-	log.Printf("ROLE_ARN='%s'", roleArn)
-
-	secretOptions := secret.Options{
-		RoleSessionName: me,
-		RoleArn:         roleArn,
-	}
-	secret := secret.New(secretOptions)
-	envOptions := envconfig.Options{
-		Secret: secret,
-	}
-	env := envconfig.New(envOptions)
+	env := envconfig.NewSimple(me)
 
 	fmt.Printf("\n")
 	fmt.Printf("try setting up values like these before running this app.\n")
 	fmt.Printf("\n")
-	fmt.Printf("(of course you should store the desired value in the correspondig aws service beforehand.)\n")
+	fmt.Printf("(of course you should store the desired value in the corresponding aws service beforehand.)\n")
 	fmt.Printf("\n")
 	fmt.Printf("export DB_URI=aws-parameterstore:sa-east-1:/microservice9/mongodb:uri\n")
 	fmt.Printf("export DB_URI=aws-parameterstore:us-east-1:/microservice9/mongodb:uri\n")

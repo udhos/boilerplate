@@ -9,26 +9,13 @@ import (
 
 	"github.com/udhos/boilerplate/boilerplate"
 	"github.com/udhos/boilerplate/envconfig"
-	"github.com/udhos/boilerplate/secret"
 )
 
 func main() {
 	me := filepath.Base(os.Args[0])
 	log.Println(boilerplate.LongVersion(me))
 
-	roleArn := os.Getenv("ROLE_ARN")
-
-	log.Printf("ROLE_ARN='%s'", roleArn)
-
-	secretOptions := secret.Options{
-		RoleSessionName: me,
-		RoleArn:         roleArn,
-	}
-	secret := secret.New(secretOptions)
-	envOptions := envconfig.Options{
-		Secret: secret,
-	}
-	env := envconfig.New(envOptions)
+	env := envconfig.NewSimple(me)
 
 	//loadConfig(env, "DB_URI", "aws-secretsmanager:us-east-1:database:uri")
 	loadConfig(env, "DB_URI", "aws-parameterstore:sa-east-1:/microservice9/mongodb:uri")

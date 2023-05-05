@@ -11,7 +11,7 @@ type FuncPrintf func(format string, v ...any)
 
 // Version returns boilerplate version.
 func Version() string {
-	return "0.10.0"
+	return "0.12.0"
 }
 
 // LongVersion returns boilerplate long version.

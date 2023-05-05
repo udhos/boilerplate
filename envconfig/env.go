@@ -33,6 +33,24 @@ func New(opt Options) *Env {
 	return &Env{options: opt}
 }
 
+// NewSimple creates a client for loading config from env vars.
+func NewSimple(sessionName string) *Env {
+	roleArn := os.Getenv("SECRET_ROLE_ARN")
+
+	log.Printf("envconfig.NewSimple: SECRET_ROLE_ARN='%s'", roleArn)
+
+	secretOptions := secret.Options{
+		RoleSessionName: sessionName,
+		RoleArn:         roleArn,
+	}
+	secret := secret.New(secretOptions)
+	envOptions := Options{
+		Secret: secret,
+	}
+	env := New(envOptions)
+	return env
+}
+
 func (e *Env) getEnv(name string) string {
 	value := os.Getenv(name)
 
