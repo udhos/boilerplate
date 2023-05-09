@@ -13,7 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.19.1
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.36.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.18.7
-	gopkg.in/yaml.v2 v2.2.8
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

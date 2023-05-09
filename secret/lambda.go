@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 /*

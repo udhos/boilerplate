@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 
 	"github.com/udhos/boilerplate/awsconfig"
 	"github.com/udhos/boilerplate/boilerplate"
