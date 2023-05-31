@@ -19,6 +19,7 @@ type Options struct {
 	RoleArn         string
 	RoleSessionName string
 	RoleExternalID  string
+	EndpointURL     string
 	Printf          boilerplate.FuncPrintf // defaults to log.Printf
 }
 
@@ -42,8 +43,23 @@ func AwsConfig(opt Options) (Output, error) {
 		opt.Printf = log.Printf
 	}
 
-	cfg, errConfig := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion(opt.Region))
+	var cfg aws.Config
+	var errConfig error
+
+	if opt.EndpointURL == "" {
+		cfg, errConfig = config.LoadDefaultConfig(context.TODO(),
+			config.WithRegion(opt.Region))
+	} else {
+		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				PartitionID:   "aws",
+				URL:           opt.EndpointURL,
+				SigningRegion: opt.Region,
+			}, nil
+		})
+		cfg, errConfig = config.LoadDefaultConfig(context.TODO(), config.WithEndpointResolverWithOptions(customResolver))
+	}
+
 	if errConfig != nil {
 		opt.Printf("%s: load config: %v", me, errConfig)
 		return out, errConfig
