@@ -147,6 +147,23 @@ func (e *Env) Uint64(name string, defaultValue uint64) uint64 {
 	return defaultValue
 }
 
+// Int64 extracts int64 value from env var.
+// It returns the provided defaultValue if the env var is empty.
+// The value returned is also recorded in logs.
+func (e *Env) Int64(name string, defaultValue int64) int64 {
+	str := e.getEnv(name)
+	if str != "" {
+		value, errConv := strconv.ParseInt(name, 10, 64)
+		if errConv == nil {
+			e.options.Printf("%s=[%s] using %s=%v default=%v", name, str, name, value, defaultValue)
+			return value
+		}
+		e.options.Printf("bad %s=[%s]: error: %v", name, str, errConv)
+	}
+	e.options.Printf("%s=[%s] using %s=%v default=%v", name, str, name, defaultValue, defaultValue)
+	return defaultValue
+}
+
 // Float64Slice extracts []float64 from env var.
 // It returns the provided defaultValue if the env var is empty.
 // The value returned is also recorded in logs.
