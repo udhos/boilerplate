@@ -4,8 +4,10 @@ package awsconfig
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
@@ -15,12 +17,14 @@ import (
 
 // Options provide optional parameters for AwsConfig.
 type Options struct {
-	Region          string
-	RoleArn         string
-	RoleSessionName string
-	RoleExternalID  string
-	EndpointURL     string
-	Printf          boilerplate.FuncPrintf // defaults to log.Printf
+	Region               string
+	RoleArn              string
+	RoleSessionName      string
+	RoleExternalID       string
+	EndpointURL          string
+	Printf               boilerplate.FuncPrintf // defaults to log.Printf
+	RetryMaxAttempts     int
+	RetryMaxBackoffDelay time.Duration
 }
 
 // Output holds returned result.
@@ -42,22 +46,37 @@ func AwsConfig(opt Options) (Output, error) {
 	if opt.Printf == nil {
 		opt.Printf = log.Printf
 	}
+	if opt.RetryMaxAttempts == 0 {
+		opt.RetryMaxAttempts = 6 // increase from default=3 to 6
+	}
+	if opt.RetryMaxBackoffDelay == 0 {
+		opt.RetryMaxBackoffDelay = 40 * time.Second // increase from default=20 to 40
+	}
 
 	var cfg aws.Config
 	var errConfig error
 
+	optionsFunc := config.WithRetryer(func() aws.Retryer {
+		var r aws.Retryer
+		r = retry.NewStandard()
+		r = retry.AddWithMaxAttempts(r, opt.RetryMaxAttempts)
+		return retry.AddWithMaxBackoffDelay(r, opt.RetryMaxBackoffDelay)
+	})
+
 	if opt.EndpointURL == "" {
 		cfg, errConfig = config.LoadDefaultConfig(context.TODO(),
-			config.WithRegion(opt.Region))
+			optionsFunc, config.WithRegion(opt.Region))
 	} else {
-		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string,
+			options ...interface{}) (aws.Endpoint, error) {
 			return aws.Endpoint{
 				PartitionID:   "aws",
 				URL:           opt.EndpointURL,
 				SigningRegion: opt.Region,
 			}, nil
 		})
-		cfg, errConfig = config.LoadDefaultConfig(context.TODO(), config.WithEndpointResolverWithOptions(customResolver))
+		cfg, errConfig = config.LoadDefaultConfig(context.TODO(),
+			optionsFunc, config.WithEndpointResolverWithOptions(customResolver))
 	}
 
 	if errConfig != nil {
