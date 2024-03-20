@@ -91,7 +91,7 @@ func AwsConfig(opt Options) (Output, error) {
 		opt.Printf("%s: AssumeRole: arn: %s", me, opt.RoleArn)
 		clientSts := sts.NewFromConfig(cfg)
 		cfg2, errConfig2 := config.LoadDefaultConfig(
-			context.TODO(), config.WithRegion(opt.Region),
+			context.TODO(), optionsFunc, config.WithRegion(opt.Region),
 			config.WithCredentialsProvider(aws.NewCredentialsCache(
 				stscreds.NewAssumeRoleProvider(
 					clientSts,
