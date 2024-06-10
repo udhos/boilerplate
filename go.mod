@@ -1,6 +1,6 @@
 module github.com/udhos/boilerplate
 
-go 1.22.1
+go 1.22.4
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.25.3
