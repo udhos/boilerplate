@@ -24,7 +24,11 @@ func queryS3(getAwsConfig awsConfigSolver, bucketAndKey string) (string, error) 
 		return "", errAwsConfig
 	}
 
-	s3client := s3.NewFromConfig(awsConfig)
+	s3client := s3.NewFromConfig(awsConfig, func(o *s3.Options) {
+		if endpoint := getAwsConfig.endpointURL(); endpoint != "" {
+			o.BaseEndpoint = aws.String(endpoint)
+		}
+	})
 
 	input := &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),

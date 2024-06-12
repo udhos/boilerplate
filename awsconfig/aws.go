@@ -53,9 +53,6 @@ func AwsConfig(opt Options) (Output, error) {
 		opt.RetryMaxBackoffDelay = 40 * time.Second // increase from default=20 to 40
 	}
 
-	var cfg aws.Config
-	var errConfig error
-
 	optionsFunc := config.WithRetryer(func() aws.Retryer {
 		var r aws.Retryer
 		r = retry.NewStandard()
@@ -63,22 +60,8 @@ func AwsConfig(opt Options) (Output, error) {
 		return retry.AddWithMaxBackoffDelay(r, opt.RetryMaxBackoffDelay)
 	})
 
-	if opt.EndpointURL == "" {
-		cfg, errConfig = config.LoadDefaultConfig(context.TODO(),
-			optionsFunc, config.WithRegion(opt.Region))
-	} else {
-		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string,
-			options ...interface{}) (aws.Endpoint, error) {
-			return aws.Endpoint{
-				PartitionID:   "aws",
-				URL:           opt.EndpointURL,
-				SigningRegion: opt.Region,
-			}, nil
-		})
-		cfg, errConfig = config.LoadDefaultConfig(context.TODO(),
-			optionsFunc, config.WithEndpointResolverWithOptions(customResolver))
-	}
-
+	cfg, errConfig := config.LoadDefaultConfig(context.TODO(),
+		optionsFunc, config.WithRegion(opt.Region))
 	if errConfig != nil {
 		opt.Printf("%s: load config: %v", me, errConfig)
 		return out, errConfig
@@ -115,8 +98,14 @@ func AwsConfig(opt Options) (Output, error) {
 	out.AwsConfig = cfg
 
 	{
+		//
 		// show caller identity
-		clientSts := sts.NewFromConfig(cfg)
+		//
+		clientSts := sts.NewFromConfig(cfg, func(o *sts.Options) {
+			if opt.EndpointURL != "" {
+				o.BaseEndpoint = aws.String(opt.EndpointURL)
+			}
+		})
 		input := sts.GetCallerIdentityInput{}
 		respSts, errSts := clientSts.GetCallerIdentity(context.TODO(), &input)
 		if errSts != nil {

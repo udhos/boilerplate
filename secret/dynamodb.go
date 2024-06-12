@@ -31,7 +31,11 @@ func queryDynamoDb(getAwsConfig awsConfigSolver, dynamoOptions string) (string, 
 		return "", errAwsConfig
 	}
 
-	dc := dynamodb.NewFromConfig(awsConfig)
+	dc := dynamodb.NewFromConfig(awsConfig, func(o *dynamodb.Options) {
+		if endpoint := getAwsConfig.endpointURL(); endpoint != "" {
+			o.BaseEndpoint = aws.String(endpoint)
+		}
+	})
 
 	av, errMarshal := attributevalue.Marshal(keyValue)
 	if errMarshal != nil {

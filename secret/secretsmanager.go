@@ -15,7 +15,11 @@ func querySecret(getAwsConfig awsConfigSolver, secretName string) (string, error
 		return "", errAwsConfig
 	}
 
-	sm := secretsmanager.NewFromConfig(awsConfig)
+	sm := secretsmanager.NewFromConfig(awsConfig, func(o *secretsmanager.Options) {
+		if endpoint := getAwsConfig.endpointURL(); endpoint != "" {
+			o.BaseEndpoint = aws.String(endpoint)
+		}
+	})
 
 	input := &secretsmanager.GetSecretValueInput{
 		SecretId:     aws.String(secretName),

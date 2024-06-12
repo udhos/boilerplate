@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"gopkg.in/yaml.v3"
 )
@@ -40,7 +41,11 @@ func queryLambda(getAwsConfig awsConfigSolver, dynamoOptions string) (string, er
 		return "", errAwsConfig
 	}
 
-	clientLambda := lambda.NewFromConfig(awsConfig)
+	clientLambda := lambda.NewFromConfig(awsConfig, func(o *lambda.Options) {
+		if endpoint := getAwsConfig.endpointURL(); endpoint != "" {
+			o.BaseEndpoint = aws.String(endpoint)
+		}
+	})
 
 	input := &lambda.InvokeInput{
 		FunctionName: &functionName,

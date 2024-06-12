@@ -15,7 +15,11 @@ func queryParameter(getAwsConfig awsConfigSolver, parameterName string) (string,
 		return "", errAwsConfig
 	}
 
-	sm := ssm.NewFromConfig(awsConfig)
+	sm := ssm.NewFromConfig(awsConfig, func(o *ssm.Options) {
+		if endpoint := getAwsConfig.endpointURL(); endpoint != "" {
+			o.BaseEndpoint = aws.String(endpoint)
+		}
+	})
 
 	input := &ssm.GetParameterInput{
 		Name:           aws.String(parameterName),

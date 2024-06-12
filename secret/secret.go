@@ -27,6 +27,7 @@ type Options struct {
 	RoleSessionName      string
 	CrashOnQueryError    bool
 	CacheTTL             time.Duration // defaults to 1 minute
+	EndpointURL          string
 }
 
 // Define default prefixes for Secrets Manager and Parameter Store.
@@ -85,6 +86,7 @@ func New(opt Options) *Secret {
 		Printf:          opt.Printf,
 		RoleArn:         opt.RoleArn,
 		RoleSessionName: opt.RoleSessionName,
+		EndpointURL:     opt.EndpointURL,
 	}
 
 	return &Secret{
@@ -287,8 +289,13 @@ func (s *awsConfigSource) get() (aws.Config, error) {
 	return output.AwsConfig, err
 }
 
+func (s *awsConfigSource) endpointURL() string {
+	return s.awsConfigOptions.EndpointURL
+}
+
 type awsConfigSolver interface {
 	get() (aws.Config, error)
+	endpointURL() string
 }
 
 type queryFunc func(getAwsConfig awsConfigSolver, name string) (string, error)
