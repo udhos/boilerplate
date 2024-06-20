@@ -47,10 +47,10 @@ func AwsConfig(opt Options) (Output, error) {
 		opt.Printf = log.Printf
 	}
 	if opt.RetryMaxAttempts == 0 {
-		opt.RetryMaxAttempts = 6 // increase from default=3 to 6
+		opt.RetryMaxAttempts = 10 // increase from default=3 to 10
 	}
 	if opt.RetryMaxBackoffDelay == 0 {
-		opt.RetryMaxBackoffDelay = 40 * time.Second // increase from default=20 to 40
+		opt.RetryMaxBackoffDelay = 60 * time.Second // increase from default=20 to 60
 	}
 
 	optionsFunc := config.WithRetryer(func() aws.Retryer {
