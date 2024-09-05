@@ -47,7 +47,7 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 		vault.WithRequestTimeout(30*time.Second),
 	)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	if err := client.SetToken("dev-only-token"); err != nil {
