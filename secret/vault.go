@@ -40,7 +40,7 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 		return "", errJoin
 	}
 
-	log.Printf("%s: url: %s", me, u)
+	log.Printf("%s: url: %s\n", me, u)
 
 	client, err := vault.New(
 		vault.WithAddress(u),

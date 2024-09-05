@@ -151,6 +151,8 @@ vault login
 
 (Enter Root Token: dev-only-token)
 
+vault secrets enable generic
+
 vault kv put -mount=secret foo bar=baz
 
 vault kv get -mount=secret foo
