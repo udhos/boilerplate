@@ -8,7 +8,6 @@ import (
 )
 
 func queryParameter(getAwsConfig awsConfigSolver, parameterName string) (string, error) {
-	const me = "queryParameter"
 
 	awsConfig, errAwsConfig := getAwsConfig.get()
 	if errAwsConfig != nil {

@@ -8,7 +8,6 @@ import (
 )
 
 func querySecret(getAwsConfig awsConfigSolver, secretName string) (string, error) {
-	const me = "querySecret"
 
 	awsConfig, errAwsConfig := getAwsConfig.get()
 	if errAwsConfig != nil {

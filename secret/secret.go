@@ -23,6 +23,7 @@ type Options struct {
 	PrefixDynamoDb       string                 // defaults to "aws-dynamodb"
 	PrefixLambda         string                 // defaults to "aws-lambda"
 	PrefixHTTP           string                 // defaults to "#http"
+	PrefixVault          string                 // defaults to "vault"
 	RoleArn              string
 	RoleSessionName      string
 	CrashOnQueryError    bool
@@ -38,6 +39,7 @@ const (
 	DefaultDynamoDbPrefix       = "aws-dynamodb"
 	DefaultLambdaPrefix         = "aws-lambda"
 	DefaultHTTPPrefix           = "#http"
+	DefaultVaultPrefix          = "vault"
 )
 
 // Secret holds context information for retrieving secrets.
@@ -78,6 +80,10 @@ func New(opt Options) *Secret {
 		opt.PrefixHTTP = DefaultHTTPPrefix
 	}
 
+	if opt.PrefixVault == "" {
+		opt.PrefixVault = DefaultVaultPrefix
+	}
+
 	if opt.CacheTTL == 0 {
 		opt.CacheTTL = time.Minute
 	}
@@ -112,6 +118,8 @@ func (s *Secret) Retrieve(name string) string {
 		name = s.query(queryLambda, s.options.PrefixLambda, name)
 	case strings.HasPrefix(name, s.options.PrefixHTTP):
 		name = s.query(queryHTTP, s.options.PrefixHTTP, name)
+	case strings.HasPrefix(name, s.options.PrefixVault):
+		name = s.query(queryVault, s.options.PrefixVault, name)
 	}
 
 	return name

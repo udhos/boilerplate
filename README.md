@@ -137,4 +137,21 @@ If you append ":<json_field>" to env var value, after the secret name, the packa
     # The secret `database` should store a JSON value like: `{"uri":"http://real-db"}`
     # In this example, the env var DB_URI will be assigned the value of the JSON field `uri`: `http://real-db`.
 
+# References
 
+## Vault
+
+https://developer.hashicorp.com/vault/docs/get-started/developer-qs
+
+```
+docker run --rm -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=dev-only-token' hashicorp/vault
+
+export VAULT_ADDR=http://127.0.0.1:8200
+vault login
+
+(Enter Root Token: dev-only-token)
+
+vault kv put -mount=secret foo bar=baz
+
+vault kv get -mount=secret foo
+```
