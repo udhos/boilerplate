@@ -29,7 +29,7 @@ aws-s3:             CONFIG_VAR=aws-s3:region:bucket_name,object_name[:field_name
 aws-dynamodb:       CONFIG_VAR=aws-dynamodb:region:table_name,key_name,key_value,value_attr[:field_name]
 aws-lambda:         CONFIG_VAR=aws-lambda:region:func_name,key_name,key_value,body_field[:field_name]
 #http:              CONFIG_VAR=#http::method,proto,host,path,body_base64,token[:field_name]
-vault:              CONFIG_VAR=vault::token,token-value,proto,host,port,secret_path:field_name
+vault:              CONFIG_VAR=vault::token,token-value,proto,host,port,secret_path[:field_name]
 ```
 
 `:field_name` is optional. If provided, the object will be decoded as JSON/YAML and the specified field name will be extracted.
@@ -80,14 +80,15 @@ export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,/,eyJwYXJhbWV0ZX
 ### Vault
 
     export DB_URI=vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri
-    # Auth method:    token
-    # Token:          dev-only-token
-    # Protocol:       http
-    # Host:           localhost
-    # Port:           8200
-    # Secret path:    secret/myapp1/mongodb
-    # Response:       {"uri":"abc"}
-    # Key (required): uri
+    # Auth method:  token
+    # Token:        dev-only-token
+    # Protocol:     http
+    # Host:         localhost
+    # Port:         8200
+    # Secret path:  secret/myapp1/mongodb
+    # Secret key:   mongodb
+    # Response:     {"uri":"abc"}
+    # JSON Field:   uri
 
 ## Usage
 
@@ -165,43 +166,55 @@ vault login
 
 (Enter Root Token: dev-only-token)
 
-vault kv put secret/myapp1/mongodb uri=abc
+vault kv put secret/myapp1 mongodb='{"uri":"abc"}'
 
-vault kv get secret/myapp1/mongodb
+vault kv get secret/myapp1
 ```
 
 ### Curl
 
 ```
-curl -H "X-Vault-Token: dev-only-token" http://127.0.0.1:8200/v1/secret/data/myapp1/mongodb
+curl -H "X-Vault-Token: dev-only-token" http://127.0.0.1:8200/v1/secret/data/myapp1
 
-{"request_id":"b2bbbaec-2a48-d373-29ef-aa28601a104c","lease_id":"","renewable":false,"lease_duration":0,"data":{"data":{"uri":"abc"},"metadata":{"created_time":"2024-09-06T04:06:13.440003761Z","custom_metadata":null,"deletion_time":"","destroyed":false,"version":1}},"wrap_info":null,"warnings":null,"auth":null,"mount_type":"kv"}
+{"request_id":"2a91f4df-64da-b585-c85b-f197869319b9","lease_id":"","renewable":false,"lease_duration":0,"data":{"data":{"mongodb":"{\"uri\":\"abc\"}"},"metadata":{"created_time":"2024-09-06T04:48:43.268293382Z","custom_metadata":null,"deletion_time":"","destroyed":false,"version":1}},"wrap_info":null,"warnings":null,"auth":null,"mount_type":"kv"}
+
+data --> {"mongodb":"{\"uri\":\"abc\"}"}
 ```
 
 ### Example
 
-`secret/myapp1/mongodb` is created as
-`secret/data/myapp1/mongodb`, and should be queried like
+`secret/myapp1` is created as
+`secret/data/myapp1`, with key
+`mongodb='{"uri":"abc"}`, and should be queried like
 `vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri`.
 
-```baSH
-$ vault kv get secret/myapp1/mongodb
-======= Secret Path =======
-secret/data/myapp1/mongodb
+```
+secret/myapp1/mongodb/uri:abc
+
+secret  = mount
+myapp1  = secret
+mongodb = key
+uri     = json field
+```
+
+```basH
+$ vault kv get secret/myapp1
+=== Secret Path ===
+secret/data/myapp1
 
 ======= Metadata =======
 Key                Value
 ---                -----
-created_time       2024-09-06T01:09:19.358645515Z
+created_time       2024-09-06T04:48:43.268293382Z
 custom_metadata    <nil>
 deletion_time      n/a
 destroyed          false
 version            1
 
-=== Data ===
-Key    Value
----    -----
-uri    abc
+===== Data =====
+Key        Value
+---        -----
+mongodb    {"uri":"abc"}
 ```
 
 ### AWS Auth

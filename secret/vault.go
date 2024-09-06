@@ -2,7 +2,6 @@ package secret
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
@@ -16,7 +15,7 @@ import (
 )
 
 /*
-export DB_URI=vault::token,dev-only-token,http,localhost,8200,secret/foo:field
+export DB_URI=vault::token,dev-only-token,http,localhost,8200,secret/foo/key:field
 */
 func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, error) {
 	const me = "queryVault"
@@ -59,10 +58,31 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 	log.Printf("%s: url: %s\n", me, u)
 
 	//
-	// resolve path
+	// resolve path: secret/<secretPath>/<key>
 	//
 
-	mountPath, secretPath, _ := strings.Cut(path, "/")
+	const minSlash = 2
+
+	if slashes := strings.Count(path, "/"); slashes < minSlash {
+		return "", fmt.Errorf("%s: bad vault path, expecting %d slashes - got %d: '%s'",
+			me, minSlash, slashes, path)
+	}
+
+	secretIndex := strings.IndexByte(path, '/')
+	if secretIndex < 0 {
+		return "", fmt.Errorf("missing secret from path: %s", path)
+	}
+
+	mountPath := path[:secretIndex]
+
+	keyIndex := strings.LastIndexByte(path, '/')
+	if keyIndex < 0 {
+		return "", fmt.Errorf("missing key from secret path: %s", path)
+	}
+	key := path[keyIndex+1:]
+
+	secretPath := path[secretIndex+1 : keyIndex]
+
 	mountPath = strings.TrimSpace(mountPath)
 	if mountPath == "" {
 		return "", fmt.Errorf("empty mount path is invalid: %s", path)
@@ -70,6 +90,10 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 	secretPath = strings.TrimSpace(secretPath)
 	if secretPath == "" {
 		return "", fmt.Errorf("empty secret path is invalid: %s", path)
+	}
+	key = strings.TrimSpace(key)
+	if key == "" {
+		return "", fmt.Errorf("empty key is invalid: %s", path)
 	}
 
 	//
@@ -107,18 +131,17 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 		return "", err
 	}
 
-	log.Println("secret retrieved:", s.Data)
+	value := s.Data[key]
 
-	//
-	// encode answer as json
-	//
+	log.Printf("%s: secret=%s key=%s value=%v", me, s.Data, key, value)
 
-	data, err := json.Marshal(s.Data)
-	if err != nil {
-		return "", err
+	str, isStr := value.(string)
+
+	if !isStr {
+		return "", fmt.Errorf("%s: not a string: %T: %v", me, value, value)
 	}
 
-	return string(data), nil
+	return str, nil
 }
 
 func vaultClientFromToken(token string) (*vault.Client, error) {
