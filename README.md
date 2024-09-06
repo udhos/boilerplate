@@ -29,6 +29,7 @@ aws-s3:             CONFIG_VAR=aws-s3:region:bucket_name,object_name[:field_name
 aws-dynamodb:       CONFIG_VAR=aws-dynamodb:region:table_name,key_name,key_value,value_attr[:field_name]
 aws-lambda:         CONFIG_VAR=aws-lambda:region:func_name,key_name,key_value,body_field[:field_name]
 #http:              CONFIG_VAR=#http::method,proto,host,path,body_base64,token[:field_name]
+vault:              CONFIG_VAR=vault::token,token-value,proto,host,port,secret_path:field_name
 ```
 
 `:field_name` is optional. If provided, the object will be decoded as JSON/YAML and the specified field name will be extracted.
@@ -41,6 +42,7 @@ export DB_URI=aws-parameterstore:us-east-1:/microservice9/mongodb:uri
 export DB_URI=aws-s3:us-east-1:bucketParameters,app7/mongodb.yaml:uri
 export DB_URI=aws-dynamodb:us-east-1:parameters,parameter,mongodb,value:uri
 export DB_URI=aws-lambda:us-east-1:parameters,parameter,mongodb,body:uri
+export DB_URI=vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri
 
 echo -n '{"parameter":"mongodb"}' | base64
 eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=
@@ -74,6 +76,18 @@ export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,/,eyJwYXJhbWV0ZX
     #     Body: {"parameter":"mongodb"} (base64 encoded as eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=)
     #    Token: Bearer secret
     # Response: {"uri":"mongodb://127.0.0.1:27001/?retryWrites=false"}
+
+### Vault
+
+    export DB_URI=vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri
+    # Auth method:    token
+    # Token:          dev-only-token
+    # Protocol:       http
+    # Host:           localhost
+    # Port:           8200
+    # Secret path:    secret/myapp1/mongodb
+    # Response:       {"uri":"abc"}
+    # Key (required): uri
 
 ## Usage
 
@@ -160,6 +174,8 @@ vault kv get secret/myapp1/mongodb
 
 ```
 curl -H "X-Vault-Token: dev-only-token" http://127.0.0.1:8200/v1/secret/data/myapp1/mongodb
+
+{"request_id":"b2bbbaec-2a48-d373-29ef-aa28601a104c","lease_id":"","renewable":false,"lease_duration":0,"data":{"data":{"uri":"abc"},"metadata":{"created_time":"2024-09-06T04:06:13.440003761Z","custom_metadata":null,"deletion_time":"","destroyed":false,"version":1}},"wrap_info":null,"warnings":null,"auth":null,"mount_type":"kv"}
 ```
 
 ### Example
