@@ -151,6 +151,8 @@ vault login
 
 (Enter Root Token: dev-only-token)
 
+vault auth enable aws
+
 vault kv put secret/myapp1/mongodb uri=abc
 
 vault kv get secret/myapp1/mongodb
@@ -159,8 +161,8 @@ vault kv get secret/myapp1/mongodb
 Example:
 
 `secret/myapp1/mongodb` is created as
-`secret/data/myapp1/mongodb`, and should be queried as
-`vault::http,localhost,8200,secret/myapp1/mongodb:uri`.
+`secret/data/myapp1/mongodb`, and should be queried like
+`vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri`.
 
 ```baSH
 $ vault kv get secret/myapp1/mongodb

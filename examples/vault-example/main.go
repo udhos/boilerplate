@@ -24,7 +24,7 @@ func main() {
 	}
 	secret := secret.New(secretOptions)
 
-	load(secret, "vault::http,localhost,8200,secret/myapp1/mongodb:uri")
+	load(secret, "vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri")
 }
 
 func load(s *secret.Secret, name string) {
