@@ -87,7 +87,7 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 		}
 	case "aws-role", "":
 		var err error
-		client, err = vaultClientFromAwsRole()
+		client, err = vaultClientFromAwsRole(authOption)
 		if err != nil {
 			return "", err
 		}
@@ -137,7 +137,7 @@ func vaultClientFromToken(token string) (*vault.Client, error) {
 	return client, nil
 }
 
-func vaultClientFromAwsRole() (*vault.Client, error) {
+func vaultClientFromAwsRole(role string) (*vault.Client, error) {
 
 	config := vault.DefaultConfig() // modify for more granular configuration
 
@@ -147,7 +147,10 @@ func vaultClientFromAwsRole() (*vault.Client, error) {
 	}
 
 	awsAuth, err := auth.NewAWSAuth(
-		auth.WithRole("dev-role-iam"), // if not provided, Vault will fall back on looking for a role with the IAM role name if you're using the iam auth type, or the EC2 instance's AMI id if using the ec2 auth type
+		// if not provided, Vault will fall back on looking for
+		// a role with the IAM role name if you're using the iam auth type,
+		// or the EC2 instance's AMI id if using the ec2 auth type
+		auth.WithRole(role),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize AWS auth method: %w", err)

@@ -24,7 +24,16 @@ func main() {
 	}
 	secret := secret.New(secretOptions)
 
-	load(secret, "vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri")
+	log.Print("TOKEN: export VAULT=vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri")
+	log.Print("ROLE:  export VAULT=vault::,dev-role-iam,http,localhost,8200,secret/myapp1/mongodb:uri")
+
+	v := os.Getenv("VAULT")
+	if v == "" {
+		v = "vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri"
+	}
+	log.Printf("VAULT=%s", v)
+
+	load(secret, v)
 }
 
 func load(s *secret.Secret, name string) {
