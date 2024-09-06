@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/url"
 	"strings"
-	"time"
 
-	"github.com/hashicorp/vault-client-go"
-	//auth "github.com/hashicorp/vault-client-go/api/auth/aws"
+	vault "github.com/hashicorp/vault/api"
 	auth "github.com/hashicorp/vault/api/auth/aws"
+	//"github.com/hashicorp/vault-client-go"
+	//"github.com/hashicorp/vault-client-go/schema"
+	//auth "github.com/hashicorp/vault-client-go/api/auth/aws"
+	//auth "github.com/hashicorp/vault/api/auth/aws"
 )
 
 /*
@@ -47,10 +48,13 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 	// build vault url
 	//
 
-	u, errJoin := url.JoinPath(proto+"://"+host, path)
-	if errJoin != nil {
-		return "", errJoin
-	}
+	/*
+		u, errJoin := url.JoinPath(proto+"://"+host, path)
+		if errJoin != nil {
+			return "", errJoin
+		}
+	*/
+	u := proto + "://" + host
 
 	log.Printf("%s: url: %s\n", me, u)
 
@@ -77,13 +81,13 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 	switch authType {
 	case "token":
 		var err error
-		client, err = vaultClientFromToken(u, authOption)
+		client, err = vaultClientFromToken(authOption)
 		if err != nil {
 			return "", err
 		}
 	case "aws-role", "":
 		var err error
-		client, err = vaultClientFromAwsRole(u)
+		client, err = vaultClientFromAwsRole()
 		if err != nil {
 			return "", err
 		}
@@ -91,22 +95,25 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 		return "", fmt.Errorf("unexpected auth type (token|aws-role): '%s': %s", authType, vaultOptions)
 	}
 
+	client.SetAddress(u)
+
 	//
 	// query vault api
 	//
 
-	s, err := client.Secrets.KvV2Read(context.Background(), secretPath, vault.WithMountPath(mountPath))
+	//s, err := client.Secrets.KvV2Read(context.Background(), secretPath, vault.WithMountPath(mountPath))
+	s, err := client.KVv2(mountPath).Get(context.Background(), secretPath)
 	if err != nil {
 		return "", err
 	}
 
-	log.Println("secret retrieved:", s.Data.Data)
+	log.Println("secret retrieved:", s.Data)
 
 	//
 	// encode answer as json
 	//
 
-	data, err := json.Marshal(s.Data.Data)
+	data, err := json.Marshal(s.Data)
 	if err != nil {
 		return "", err
 	}
@@ -114,39 +121,44 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 	return string(data), nil
 }
 
-func vaultClientFromToken(u, token string) (*vault.Client, error) {
-	client, err := vault.New(
-		vault.WithAddress(u),
-		vault.WithRequestTimeout(30*time.Second),
-	)
+func vaultClientFromToken(token string) (*vault.Client, error) {
+	/*
+		client, err := vault.New(
+			vault.WithAddress(u),
+			vault.WithRequestTimeout(30*time.Second),
+		)
+	*/
+	config := vault.DefaultConfig()
+	client, err := vault.NewClient(config)
 	if err != nil {
 		return nil, err
 	}
-	if err := client.SetToken(token); err != nil {
-		return nil, err
-	}
+	client.SetToken(token)
 	return client, nil
 }
 
-func vaultClientFromAwsRole(u string) (*vault.Client, error) {
+func vaultClientFromAwsRole() (*vault.Client, error) {
 
-	client, err := vault.New(
-		vault.WithAddress(u),
-		vault.WithRequestTimeout(30*time.Second),
-	)
+	config := vault.DefaultConfig() // modify for more granular configuration
+
+	client, err := vault.NewClient(config)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize Vault client: %w", err)
 	}
 
-	_, err = auth.NewAWSAuth(
-		// if not provided, Vault will fall back on looking for a role with the IAM role name if you're using the iam auth type, or the EC2 instance's AMI id if using the ec2 auth type
-		// dev-role-iam:
-		//   $ vault write auth/aws/role/dev-role-iam auth_type=iam bound_iam_principal_arn=arn:aws:iam::123456789012:role/MyRole policies=prod,dev max_ttl=500h
-		// see https://developer.hashicorp.com/vault/docs/auth/aws
-		auth.WithRole("dev-role-iam"),
+	awsAuth, err := auth.NewAWSAuth(
+		auth.WithRole("dev-role-iam"), // if not provided, Vault will fall back on looking for a role with the IAM role name if you're using the iam auth type, or the EC2 instance's AMI id if using the ec2 auth type
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize AWS auth method: %w", err)
+	}
+
+	authInfo, err := client.Auth().Login(context.Background(), awsAuth)
+	if err != nil {
+		return nil, fmt.Errorf("unable to login to AWS auth method: %w", err)
+	}
+	if authInfo == nil {
+		return nil, fmt.Errorf("no auth info was returned after login")
 	}
 
 	return client, nil

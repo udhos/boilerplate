@@ -13,7 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.30.0
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.50.6
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.12
-	github.com/hashicorp/vault-client-go v0.4.3
+	github.com/hashicorp/vault/api v1.14.0
 	github.com/hashicorp/vault/api/auth/aws v0.7.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -50,7 +50,6 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/hashicorp/vault/api v1.14.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

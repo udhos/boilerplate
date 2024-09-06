@@ -151,14 +151,18 @@ vault login
 
 (Enter Root Token: dev-only-token)
 
-vault auth enable aws
-
 vault kv put secret/myapp1/mongodb uri=abc
 
 vault kv get secret/myapp1/mongodb
 ```
 
-Example:
+### Curl
+
+```
+curl -H "X-Vault-Token: dev-only-token" http://127.0.0.1:8200/v1/secret/data/myapp1/mongodb
+```
+
+### Example
 
 `secret/myapp1/mongodb` is created as
 `secret/data/myapp1/mongodb`, and should be queried like
