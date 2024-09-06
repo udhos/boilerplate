@@ -24,11 +24,7 @@ func main() {
 	}
 	secret := secret.New(secretOptions)
 
-	load(secret, "aws-parameterstore:sa-east-1:/microservice9/mongodb:uri")
-	load(secret, "aws-parameterstore:us-east-1:/microservice9/mongodb:uri")
-	load(secret, "aws-s3:us-east-1:acredito,app7/mongodb.yaml:uri")
-	load(secret, "aws-dynamodb:us-east-1:parameters,parameter,mongodb,value:uri")
-	load(secret, "aws-lambda:us-east-1:parameters,parameter,mongodb,body:uri")
+	load(secret, "vault::http,localhost,8200,secret/myapp1/mongodb:uri")
 }
 
 func load(s *secret.Secret, name string) {

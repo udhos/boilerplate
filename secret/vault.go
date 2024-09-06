@@ -18,6 +18,10 @@ export DB_URI=vault::http,localhost,8200,secret/foo:field
 func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, error) {
 	const me = "queryVault"
 
+	//
+	// parse fields
+	//
+
 	const fields = 4
 
 	options := strings.SplitN(vaultOptions, ",", fields)
@@ -35,12 +39,34 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 		host += ":" + port
 	}
 
+	//
+	// build vault url
+	//
+
 	u, errJoin := url.JoinPath(proto+"://"+host, path)
 	if errJoin != nil {
 		return "", errJoin
 	}
 
 	log.Printf("%s: url: %s\n", me, u)
+
+	//
+	// resolve path
+	//
+
+	mountPath, secretPath, _ := strings.Cut(path, "/")
+	mountPath = strings.TrimSpace(mountPath)
+	if mountPath == "" {
+		return "", fmt.Errorf("empty mount path is invalid: %s", path)
+	}
+	secretPath = strings.TrimSpace(secretPath)
+	if secretPath == "" {
+		return "", fmt.Errorf("empty secret path is invalid: %s", path)
+	}
+
+	//
+	// login
+	//
 
 	client, err := vault.New(
 		vault.WithAddress(u),
@@ -54,14 +80,22 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 		return "", err
 	}
 
-	s, err := client.Secrets.KvV1Read(context.Background(), path)
+	//
+	// query vault api
+	//
+
+	s, err := client.Secrets.KvV2Read(context.Background(), secretPath, vault.WithMountPath(mountPath))
 	if err != nil {
 		return "", err
 	}
 
-	log.Println("secret retrieved:", s.Data)
+	log.Println("secret retrieved:", s.Data.Data)
 
-	data, err := json.Marshal(s.Data)
+	//
+	// encode answer as json
+	//
+
+	data, err := json.Marshal(s.Data.Data)
 	if err != nil {
 		return "", err
 	}

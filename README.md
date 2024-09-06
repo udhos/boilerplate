@@ -143,7 +143,7 @@ If you append ":<json_field>" to env var value, after the secret name, the packa
 
 https://developer.hashicorp.com/vault/docs/get-started/developer-qs
 
-```
+```bash
 docker run --rm -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=dev-only-token' hashicorp/vault
 
 export VAULT_ADDR=http://127.0.0.1:8200
@@ -151,9 +151,33 @@ vault login
 
 (Enter Root Token: dev-only-token)
 
-vault secrets enable generic
+vault kv put secret/myapp1/mongodb uri=abc
 
-vault kv put -mount=secret foo bar=baz
+vault kv get secret/myapp1/mongodb
+```
 
-vault kv get -mount=secret foo
+Example:
+
+`secret/myapp1/mongodb` is created as
+`secret/data/myapp1/mongodb`, and should be queried as
+`vault::http,localhost,8200,secret/myapp1/mongodb:uri`.
+
+```baSH
+$ vault kv get secret/myapp1/mongodb
+======= Secret Path =======
+secret/data/myapp1/mongodb
+
+======= Metadata =======
+Key                Value
+---                -----
+created_time       2024-09-06T01:09:19.358645515Z
+custom_metadata    <nil>
+deletion_time      n/a
+destroyed          false
+version            1
+
+=== Data ===
+Key    Value
+---    -----
+uri    abc
 ```
