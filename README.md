@@ -4,6 +4,8 @@
 
 # boilerplate
 
+[boilerplate](https://github.com/udhos/boilerplate) loads secrets from multiple sources, like AWS Secrets Manager, AWS Parameter Store, Hashicorp Vault, etc.
+
 * [envconfig](#envconfig)
   * [Supported Stores](#supported-stores)
     * [DynamoDB](#dynamodb)
