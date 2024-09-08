@@ -9,12 +9,18 @@
     * [DynamoDB](#dynamodb)
     * [Lambda](#lambda)
     * [HTTP](#http)
+    * [Vault](#vault)
   * [Usage](#usage)
     * [Create a function to load app configuration from env vars](#create-a-function-to-load-app-configuration-from-env-vars)
     * [How to define env var DB\_URI](#how-to-define-env-var-db_uri)
       * [Option 1: Literal value](#option-1-literal-value)
       * [Option 2: Retrieve scalar value from AWS Secrets Manager](#option-2-retrieve-scalar-value-from-aws-secrets-manager)
       * [Option 3: Retrieve JSON value from AWS Secrets Manager](#option-3-retrieve-json-value-from-aws-secrets-manager)
+* [References](#references)
+  * [Vault](#vault-1)
+    * [Curl](#curl)
+    * [Example](#example)
+    * [Testing AWS IAM Role](#testing-aws-iam-role)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 
