@@ -16,6 +16,7 @@ import (
 
 // Options provide optional parameters for client.
 type Options struct {
+	Debug                bool
 	Printf               boilerplate.FuncPrintf // defaults to log.Printf
 	PrefixSecretsManager string                 // defaults to "aws-secretsmanager"
 	PrefixParameterStore string                 // defaults to "aws-parameterstore"
@@ -23,6 +24,7 @@ type Options struct {
 	PrefixDynamoDb       string                 // defaults to "aws-dynamodb"
 	PrefixLambda         string                 // defaults to "aws-lambda"
 	PrefixHTTP           string                 // defaults to "#http"
+	PrefixVault          string                 // defaults to "vault"
 	RoleArn              string
 	RoleSessionName      string
 	CrashOnQueryError    bool
@@ -38,6 +40,7 @@ const (
 	DefaultDynamoDbPrefix       = "aws-dynamodb"
 	DefaultLambdaPrefix         = "aws-lambda"
 	DefaultHTTPPrefix           = "#http"
+	DefaultVaultPrefix          = "vault"
 )
 
 // Secret holds context information for retrieving secrets.
@@ -78,6 +81,10 @@ func New(opt Options) *Secret {
 		opt.PrefixHTTP = DefaultHTTPPrefix
 	}
 
+	if opt.PrefixVault == "" {
+		opt.PrefixVault = DefaultVaultPrefix
+	}
+
 	if opt.CacheTTL == 0 {
 		opt.CacheTTL = time.Minute
 	}
@@ -112,6 +119,8 @@ func (s *Secret) Retrieve(name string) string {
 		name = s.query(queryLambda, s.options.PrefixLambda, name)
 	case strings.HasPrefix(name, s.options.PrefixHTTP):
 		name = s.query(queryHTTP, s.options.PrefixHTTP, name)
+	case strings.HasPrefix(name, s.options.PrefixVault):
+		name = s.query(queryVault, s.options.PrefixVault, name)
 	}
 
 	return name
@@ -254,7 +263,7 @@ func (s *Secret) retrieve(q queryFunc, region, secretName, field string) (string
 	//
 	s.awsConfSrc.awsConfigOptions.Region = region
 
-	value, errSecret := q(s.awsConfSrc, secretName)
+	value, errSecret := q(s.options.Debug, s.options.Printf, s.awsConfSrc, secretName)
 	if errSecret != nil {
 		s.options.Printf("%s: secret error: %v", me, errSecret)
 		return value, errSecret
@@ -298,4 +307,4 @@ type awsConfigSolver interface {
 	endpointURL() string
 }
 
-type queryFunc func(getAwsConfig awsConfigSolver, name string) (string, error)
+type queryFunc func(debug bool, printf boilerplate.FuncPrintf, getAwsConfig awsConfigSolver, name string) (string, error)

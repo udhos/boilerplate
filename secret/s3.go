@@ -8,9 +8,10 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/udhos/boilerplate/boilerplate"
 )
 
-func queryS3(getAwsConfig awsConfigSolver, bucketAndKey string) (string, error) {
+func queryS3(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, getAwsConfig awsConfigSolver, bucketAndKey string) (string, error) {
 	const me = "queryS3"
 
 	bucketName, objectKey, found := strings.Cut(bucketAndKey, ",")

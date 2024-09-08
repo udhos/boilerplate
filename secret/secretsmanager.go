@@ -5,10 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/udhos/boilerplate/boilerplate"
 )
 
-func querySecret(getAwsConfig awsConfigSolver, secretName string) (string, error) {
-	const me = "querySecret"
+func querySecret(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, getAwsConfig awsConfigSolver, secretName string) (string, error) {
 
 	awsConfig, errAwsConfig := getAwsConfig.get()
 	if errAwsConfig != nil {
