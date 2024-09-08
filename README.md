@@ -162,10 +162,19 @@ If you append ":<json_field>" to env var value, after the secret name, the packa
 
 ## Vault
 
-https://developer.hashicorp.com/vault/docs/get-started/developer-qs
+Get started: https://developer.hashicorp.com/vault/docs/get-started/developer-qs
+
+Vault server version: `hashicorp/vault:1.17.5`
+
+Vault cli version:
+
+```
+$ vault version
+Vault v1.17.5 (4d0c53e84094b8017d32b6e5b7f8142035c8837f), built 2024-08-30T15:54:57Z
+```
 
 ```bash
-docker run --rm -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=dev-only-token' hashicorp/vault
+docker run --rm -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=dev-only-token' hashicorp/vault:1.17.5
 
 export VAULT_ADDR=http://127.0.0.1:8200
 vault login
@@ -235,7 +244,7 @@ docker run --rm -p 8200:8200 \
     -e 'VAULT_DEV_ROOT_TOKEN_ID=dev-only-token' \
     -e AWS_ACCESS_KEY_ID=$key \
     -e AWS_SECRET_ACCESS_KEY=$secret \
-    hashicorp/vault
+    hashicorp/vault:1.17.5
 ```
 
 2. Use vault cli to configure the server
