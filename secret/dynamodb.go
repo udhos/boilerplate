@@ -9,10 +9,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/udhos/boilerplate/boilerplate"
 )
 
 // aws-dynamodb:region:table_name,key_name,key_value,value_attr[:field_name]
-func queryDynamoDb(getAwsConfig awsConfigSolver, dynamoOptions string) (string, error) {
+func queryDynamoDb(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, getAwsConfig awsConfigSolver, dynamoOptions string) (string, error) {
 	const me = "queryDynamoDb"
 
 	options := strings.SplitN(dynamoOptions, ",", 4)

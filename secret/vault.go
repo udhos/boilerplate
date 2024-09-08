@@ -3,21 +3,17 @@ package secret
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 
 	vault "github.com/hashicorp/vault/api"
 	auth "github.com/hashicorp/vault/api/auth/aws"
-	//"github.com/hashicorp/vault-client-go"
-	//"github.com/hashicorp/vault-client-go/schema"
-	//auth "github.com/hashicorp/vault-client-go/api/auth/aws"
-	//auth "github.com/hashicorp/vault/api/auth/aws"
+	"github.com/udhos/boilerplate/boilerplate"
 )
 
 /*
 export DB_URI=vault::token,dev-only-token,http,localhost,8200,secret/foo/key:field
 */
-func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, error) {
+func queryVault(debug bool, printf boilerplate.FuncPrintf, _ /*unused*/ awsConfigSolver, vaultOptions string) (string, error) {
 	const me = "queryVault"
 
 	//
@@ -30,6 +26,11 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 	if len(options) < fields {
 		return "", fmt.Errorf("%s: bad vault options, expecting %d fields - got: '%s'",
 			me, fields, vaultOptions)
+	}
+
+	// drop spaces
+	for i, s := range options {
+		options[i] = strings.TrimSpace(s)
 	}
 
 	authType := options[0]
@@ -47,15 +48,11 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 	// build vault url
 	//
 
-	/*
-		u, errJoin := url.JoinPath(proto+"://"+host, path)
-		if errJoin != nil {
-			return "", errJoin
-		}
-	*/
 	u := proto + "://" + host
 
-	log.Printf("%s: url: %s\n", me, u)
+	if debug {
+		printf("DEBUG %s: url: %s", me, u)
+	}
 
 	//
 	// resolve path: secret/<secretPath>/<key>
@@ -105,13 +102,13 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 	switch authType {
 	case "token":
 		var err error
-		client, err = vaultClientFromToken(authOption)
+		client, err = vaultClientFromToken(u, authOption)
 		if err != nil {
 			return "", err
 		}
 	case "aws-role", "":
 		var err error
-		client, err = vaultClientFromAwsRole(authOption)
+		client, err = vaultClientFromAwsRole(u, authOption)
 		if err != nil {
 			return "", err
 		}
@@ -133,7 +130,9 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 
 	value := s.Data[key]
 
-	log.Printf("%s: secret=%s key=%s value=%v", me, s.Data, key, value)
+	if debug {
+		printf("DEBUG %s: secret=%s key=%s value=%v", me, s.Data, key, value)
+	}
 
 	str, isStr := value.(string)
 
@@ -144,14 +143,9 @@ func queryVault( /*unused*/ _ awsConfigSolver, vaultOptions string) (string, err
 	return str, nil
 }
 
-func vaultClientFromToken(token string) (*vault.Client, error) {
-	/*
-		client, err := vault.New(
-			vault.WithAddress(u),
-			vault.WithRequestTimeout(30*time.Second),
-		)
-	*/
+func vaultClientFromToken(u, token string) (*vault.Client, error) {
 	config := vault.DefaultConfig()
+	config.Address = u
 	client, err := vault.NewClient(config)
 	if err != nil {
 		return nil, err
@@ -160,9 +154,10 @@ func vaultClientFromToken(token string) (*vault.Client, error) {
 	return client, nil
 }
 
-func vaultClientFromAwsRole(role string) (*vault.Client, error) {
+func vaultClientFromAwsRole(u, role string) (*vault.Client, error) {
 
 	config := vault.DefaultConfig() // modify for more granular configuration
+	config.Address = u
 
 	client, err := vault.NewClient(config)
 	if err != nil {

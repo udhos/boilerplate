@@ -16,6 +16,7 @@ import (
 
 // Options provide optional parameters for client.
 type Options struct {
+	Debug                bool
 	Printf               boilerplate.FuncPrintf // defaults to log.Printf
 	PrefixSecretsManager string                 // defaults to "aws-secretsmanager"
 	PrefixParameterStore string                 // defaults to "aws-parameterstore"
@@ -262,7 +263,7 @@ func (s *Secret) retrieve(q queryFunc, region, secretName, field string) (string
 	//
 	s.awsConfSrc.awsConfigOptions.Region = region
 
-	value, errSecret := q(s.awsConfSrc, secretName)
+	value, errSecret := q(s.options.Debug, s.options.Printf, s.awsConfSrc, secretName)
 	if errSecret != nil {
 		s.options.Printf("%s: secret error: %v", me, errSecret)
 		return value, errSecret
@@ -306,4 +307,4 @@ type awsConfigSolver interface {
 	endpointURL() string
 }
 
-type queryFunc func(getAwsConfig awsConfigSolver, name string) (string, error)
+type queryFunc func(debug bool, printf boilerplate.FuncPrintf, getAwsConfig awsConfigSolver, name string) (string, error)

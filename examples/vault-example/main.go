@@ -14,14 +14,7 @@ func main() {
 	me := filepath.Base(os.Args[0])
 	log.Println(boilerplate.LongVersion(me))
 
-	roleArn := os.Getenv("ROLE_ARN")
-
-	log.Printf("ROLE_ARN='%s'", roleArn)
-
-	secretOptions := secret.Options{
-		RoleSessionName: me,
-		RoleArn:         roleArn,
-	}
+	secretOptions := secret.Options{}
 	secret := secret.New(secretOptions)
 
 	log.Print("TOKEN: export VAULT=vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri")

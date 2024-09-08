@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/udhos/boilerplate/boilerplate"
 	"gopkg.in/yaml.v3"
 )
 
@@ -18,13 +19,13 @@ export DB_URI=aws-lambda:us-east-1:parameters,parameter,mongodb,body:uri
 # Response field: body
 #       Response: {"statusCode": 200,"body": "{\"uri\": \"mongodb://localhost:27017/?retryWrites=false\"}"}
 */
-func queryLambda(getAwsConfig awsConfigSolver, dynamoOptions string) (string, error) {
+func queryLambda(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, getAwsConfig awsConfigSolver, lambdaOptions string) (string, error) {
 	const me = "queryLambda"
 
-	options := strings.SplitN(dynamoOptions, ",", 4)
+	options := strings.SplitN(lambdaOptions, ",", 4)
 	if len(options) < 4 {
-		return "", fmt.Errorf("%s: bad dynamodb options, expecting 4 fields - got: '%s'",
-			me, dynamoOptions)
+		return "", fmt.Errorf("%s: bad lambda options, expecting 4 fields - got: '%s'",
+			me, lambdaOptions)
 	}
 
 	functionName := options[0]

@@ -5,9 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/udhos/boilerplate/boilerplate"
 )
 
-func queryParameter(getAwsConfig awsConfigSolver, parameterName string) (string, error) {
+func queryParameter(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, getAwsConfig awsConfigSolver, parameterName string) (string, error) {
 
 	awsConfig, errAwsConfig := getAwsConfig.get()
 	if errAwsConfig != nil {
