@@ -51,46 +51,21 @@ func queryVault(debug bool, printf boilerplate.FuncPrintf, _ /*unused*/ awsConfi
 	u := proto + "://" + host
 
 	if debug {
-		printf("DEBUG %s: url: %s", me, u)
+		printf("DEBUG %s: vault server URL: %s", me, u)
 	}
 
 	//
 	// resolve path: secret/<secretPath>/<key>
 	//
 
-	const minSlash = 2
-
-	if slashes := strings.Count(path, "/"); slashes < minSlash {
-		return "", fmt.Errorf("%s: bad vault path, expecting %d slashes - got %d: '%s'",
-			me, minSlash, slashes, path)
+	mountPath, secretPath, key, errPath := parseSecretPath(path)
+	if errPath != nil {
+		return "", errPath
 	}
 
-	secretIndex := strings.IndexByte(path, '/')
-	if secretIndex < 0 {
-		return "", fmt.Errorf("missing secret from path: %s", path)
-	}
-
-	mountPath := path[:secretIndex]
-
-	keyIndex := strings.LastIndexByte(path, '/')
-	if keyIndex < 0 {
-		return "", fmt.Errorf("missing key from secret path: %s", path)
-	}
-	key := path[keyIndex+1:]
-
-	secretPath := path[secretIndex+1 : keyIndex]
-
-	mountPath = strings.TrimSpace(mountPath)
-	if mountPath == "" {
-		return "", fmt.Errorf("empty mount path is invalid: %s", path)
-	}
-	secretPath = strings.TrimSpace(secretPath)
-	if secretPath == "" {
-		return "", fmt.Errorf("empty secret path is invalid: %s", path)
-	}
-	key = strings.TrimSpace(key)
-	if key == "" {
-		return "", fmt.Errorf("empty key is invalid: %s", path)
+	if debug {
+		printf("DEBUG %s: raw_path=%s mount_path=%s secret_path=%s key=%s",
+			me, path, mountPath, secretPath, key)
 	}
 
 	//
@@ -122,7 +97,6 @@ func queryVault(debug bool, printf boilerplate.FuncPrintf, _ /*unused*/ awsConfi
 	// query vault api
 	//
 
-	//s, err := client.Secrets.KvV2Read(context.Background(), secretPath, vault.WithMountPath(mountPath))
 	s, err := client.KVv2(mountPath).Get(context.Background(), secretPath)
 	if err != nil {
 		return "", err
@@ -131,7 +105,8 @@ func queryVault(debug bool, printf boilerplate.FuncPrintf, _ /*unused*/ awsConfi
 	value := s.Data[key]
 
 	if debug {
-		printf("DEBUG %s: secret=%s key=%s value=%v", me, s.Data, key, value)
+		printf("DEBUG %s: raw_path=%s mount_path=%s secret_path=%s key=%s raw_value=%v keyed_value=%v",
+			me, path, mountPath, secretPath, key, s.Data, value)
 	}
 
 	str, isStr := value.(string)
@@ -183,4 +158,46 @@ func vaultClientFromAwsRole(u, role string) (*vault.Client, error) {
 	}
 
 	return client, nil
+}
+
+func parseSecretPath(path string) (string, string, string, error) {
+	const minSlash = 2
+
+	path = strings.TrimSpace(path)
+	path = strings.TrimPrefix(path, "/")
+
+	if slashes := strings.Count(path, "/"); slashes < minSlash {
+		return "", "", "", fmt.Errorf("bad vault path, expecting %d slashes - got %d: '%s'",
+			minSlash, slashes, path)
+	}
+
+	secretIndex := strings.IndexByte(path, '/')
+	if secretIndex < 0 {
+		return "", "", "", fmt.Errorf("missing secret from path: %s", path)
+	}
+
+	mountPath := path[:secretIndex]
+
+	keyIndex := strings.LastIndexByte(path, '/')
+	if keyIndex < 0 {
+		return "", "", "", fmt.Errorf("missing key from secret path: %s", path)
+	}
+	key := path[keyIndex+1:]
+
+	secretPath := path[secretIndex+1 : keyIndex]
+
+	mountPath = strings.TrimSpace(mountPath)
+	if mountPath == "" {
+		return "", "", "", fmt.Errorf("empty mount path is invalid: %s", path)
+	}
+	secretPath = strings.TrimSpace(secretPath)
+	if secretPath == "" {
+		return "", "", "", fmt.Errorf("empty secret path is invalid: %s", path)
+	}
+	key = strings.TrimSpace(key)
+	if key == "" {
+		return "", "", "", fmt.Errorf("empty key is invalid: %s", path)
+	}
+
+	return mountPath, secretPath, key, nil
 }

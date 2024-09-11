@@ -14,7 +14,8 @@ func main() {
 	me := filepath.Base(os.Args[0])
 	log.Println(boilerplate.LongVersion(me))
 
-	secretOptions := secret.Options{}
+	debug := os.Getenv("DEBUG")
+	secretOptions := secret.Options{Debug: debug != ""}
 	secret := secret.New(secretOptions)
 
 	log.Print("TOKEN: export VAULT=vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri")
