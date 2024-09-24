@@ -228,7 +228,7 @@ type secret struct {
 }
 
 func (s *Secret) retrieve(q queryFunc, region, secretName, field string) (string, error) {
-	const me = "retrieve"
+	const me = "Secret.retrieve"
 
 	var cacheKey string
 	var secretString string
@@ -265,7 +265,7 @@ func (s *Secret) retrieve(q queryFunc, region, secretName, field string) (string
 
 	value, errSecret := q(s.options.Debug, s.options.Printf, s.awsConfSrc, secretName)
 	if errSecret != nil {
-		s.options.Printf("%s: secret error: %v", me, errSecret)
+		s.options.Printf("%s: secret query error: %v", me, errSecret)
 		return value, errSecret
 	}
 	secretString = value
@@ -274,7 +274,7 @@ func (s *Secret) retrieve(q queryFunc, region, secretName, field string) (string
 	// retrieved value from service
 	//
 
-	s.options.Printf("%s: from secretsmanager: %s=%s", me, secretName, secretString)
+	s.options.Printf("%s: from store: %s=%s", me, secretName, secretString)
 
 	if field != "" {
 		//
