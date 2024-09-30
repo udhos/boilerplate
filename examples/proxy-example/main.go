@@ -18,12 +18,12 @@ func main() {
 	secretOptions := secret.Options{Debug: debug != ""}
 	secret := secret.New(secretOptions)
 
-	log.Print("TOKEN: export SECRET=proxy||http,localhost,8200,vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri")
-	log.Print("ROLE:  export SECRET=proxy||http,localhost,8200,vault::,dev-role-iam,http,localhost,8200,secret/myapp1/mongodb:uri")
+	log.Print("TOKEN: export SECRET='proxy||http,localhost,8080,vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri'")
+	log.Print("ROLE:  export SECRET='proxy||http,localhost,8080,vault::,dev-role-iam,http,localhost,8200,secret/myapp1/mongodb:uri'")
 
 	v := os.Getenv("SECRET")
 	if v == "" {
-		v = "proxy||http,localhost,8200,vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri"
+		v = "proxy||http,localhost,8080,vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri"
 	}
 	log.Printf("SECRET=%s", v)
 

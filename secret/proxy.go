@@ -15,9 +15,9 @@ import (
 /*
 proxy||proto,host,port,secret_name[|field_name]
 
-export DB_URI=proxy||http,localhost,8200,vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri
+export DB_URI=proxy||http,localhost,8080,vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri
 */
-func queryProxy(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf,
+func queryProxy(debug bool, printf boilerplate.FuncPrintf,
 	_ /*unused*/ awsConfigSolver, proxyOptions string) (string, error) {
 	const me = "queryProxy"
 
@@ -87,6 +87,11 @@ func queryProxy(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf,
 	var responseBody proxyPayload
 
 	errJSON := json.Unmarshal(respBody, &responseBody)
+
+	if debug {
+		printf("DEBUG %s: secret_name=%s secret_value=%s body=%s error=%v",
+			me, secretName, responseBody.SecretValue, str, errJSON)
+	}
 
 	return responseBody.SecretValue, errJSON
 }
