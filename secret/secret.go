@@ -26,6 +26,7 @@ type Options struct {
 	PrefixLambda         string                 // defaults to "aws-lambda"
 	PrefixHTTP           string                 // defaults to "#http"
 	PrefixVault          string                 // defaults to "vault"
+	PrefixProxy          string                 // defaults to "proxy"
 	RoleArn              string
 	RoleSessionName      string
 	CrashOnQueryError    bool
@@ -42,6 +43,7 @@ const (
 	DefaultLambdaPrefix         = "aws-lambda"
 	DefaultHTTPPrefix           = "#http"
 	DefaultVaultPrefix          = "vault"
+	DefaultProxyPrefix          = "proxy"
 )
 
 // Secret holds context information for retrieving secrets.
@@ -146,6 +148,8 @@ func (s *Secret) RetrieveWithError(name string) (string, error) {
 		name, err = s.queryWithError(queryHTTP, s.options.PrefixHTTP, name)
 	case strings.HasPrefix(name, s.options.PrefixVault):
 		name, err = s.queryWithError(queryVault, s.options.PrefixVault, name)
+	case strings.HasPrefix(name, s.options.PrefixProxy):
+		name, err = s.queryWithError(queryProxy, s.options.PrefixProxy, name)
 	}
 
 	return name, err

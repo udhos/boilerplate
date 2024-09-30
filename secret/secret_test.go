@@ -8,7 +8,7 @@ type secretNameTest struct {
 	secretName        string
 	expectRegion      string
 	expectSecretName  string
-	expectJsonField   string
+	expectJSONField   string
 	expectErrorResult bool
 }
 
@@ -43,9 +43,9 @@ func TestParseSecretName(t *testing.T) {
 				i+1, len(secretNameTestTable), data.testName, secretName, data.expectSecretName)
 		}
 
-		if jsonField != data.expectJsonField {
+		if jsonField != data.expectJSONField {
 			t.Errorf("%d/%d: %s: json field error: got=%s expected=%s",
-				i+1, len(secretNameTestTable), data.testName, jsonField, data.expectJsonField)
+				i+1, len(secretNameTestTable), data.testName, jsonField, data.expectJSONField)
 		}
 
 	}

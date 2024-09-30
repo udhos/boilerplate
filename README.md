@@ -38,6 +38,7 @@ aws-dynamodb:       CONFIG_VAR=aws-dynamodb:region:table_name,key_name,key_value
 aws-lambda:         CONFIG_VAR=aws-lambda:region:func_name,key_name,key_value,body_field[:field_name]
 #http:              CONFIG_VAR=#http::method,proto,host,path,body_base64,token[:field_name]
 vault:              CONFIG_VAR=vault::token,token-value,proto,host,port,secret_path[:field_name]
+proxy:              CONFIG_VAR=proxy||proto,host,port,path,secret_name[|field_name]
 ```
 
 `:field_name` is optional. If provided, the object will be decoded as JSON/YAML and the specified field name will be extracted.
@@ -51,6 +52,7 @@ export DB_URI=aws-s3:us-east-1:bucketParameters,app7/mongodb.yaml:uri
 export DB_URI=aws-dynamodb:us-east-1:parameters,parameter,mongodb,value:uri
 export DB_URI=aws-lambda:us-east-1:parameters,parameter,mongodb,body:uri
 export DB_URI=vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri
+export DB_URI=proxy||http,localhost,8200,/secret,vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri
 
 echo -n '{"parameter":"mongodb"}' | base64
 eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=
