@@ -104,31 +104,78 @@ func New(opt Options) *Secret {
 }
 
 // Retrieve fetches a secret.
+// If an error is found, only crashes if CrashOnQueryError is set.
+// name: aws-secretsmanager:region:name:json_field
 func (s *Secret) Retrieve(name string) string {
+	const me = "Secret.Retrieve"
+
+	value, err := s.RetrieveWithError(name)
+	if err != nil {
+		s.options.Printf("%s: error: name='%s': %v",
+			me, name, err)
+		if s.options.CrashOnQueryError {
+			s.options.Printf("%s: error: crashing on error: name='%s': %v",
+				me, name, err)
+			os.Exit(1)
+		}
+		return name
+	}
+
+	return value
+}
+
+// RetrieveWithError fetches a secret.
+// name: aws-secretsmanager:region:name:json_field
+func (s *Secret) RetrieveWithError(name string) (string, error) {
+
+	var err error
 
 	switch {
 	case strings.HasPrefix(name, s.options.PrefixSecretsManager):
-		name = s.query(querySecret, s.options.PrefixSecretsManager, name)
+		name, err = s.queryWithError(querySecret, s.options.PrefixSecretsManager, name)
 	case strings.HasPrefix(name, s.options.PrefixParameterStore):
-		name = s.query(queryParameter, s.options.PrefixParameterStore, name)
+		name, err = s.queryWithError(queryParameter, s.options.PrefixParameterStore, name)
 	case strings.HasPrefix(name, s.options.PrefixS3):
-		name = s.query(queryS3, s.options.PrefixS3, name)
+		name, err = s.queryWithError(queryS3, s.options.PrefixS3, name)
 	case strings.HasPrefix(name, s.options.PrefixDynamoDb):
-		name = s.query(queryDynamoDb, s.options.PrefixDynamoDb, name)
+		name, err = s.queryWithError(queryDynamoDb, s.options.PrefixDynamoDb, name)
 	case strings.HasPrefix(name, s.options.PrefixLambda):
-		name = s.query(queryLambda, s.options.PrefixLambda, name)
+		name, err = s.queryWithError(queryLambda, s.options.PrefixLambda, name)
 	case strings.HasPrefix(name, s.options.PrefixHTTP):
-		name = s.query(queryHTTP, s.options.PrefixHTTP, name)
+		name, err = s.queryWithError(queryHTTP, s.options.PrefixHTTP, name)
 	case strings.HasPrefix(name, s.options.PrefixVault):
-		name = s.query(queryVault, s.options.PrefixVault, name)
+		name, err = s.queryWithError(queryVault, s.options.PrefixVault, name)
 	}
 
-	return name
+	return name, err
 }
 
-// aws-secretsmanager:region:name:json_field
+// query retrieves a secret.
+// If an error is found, only crashes if CrashOnQueryError is set.
+// key: aws-secretsmanager:region:name:json_field
 func (s *Secret) query(q queryFunc, prefix, key string) string {
 	const me = "query"
+
+	value, errQuery := s.queryWithError(q, prefix, key)
+
+	if errQuery != nil {
+		s.options.Printf("%s: error: key='%s': %v",
+			me, key, errQuery)
+		if s.options.CrashOnQueryError {
+			s.options.Printf("%s: error: crashing on error: key='%s': %v",
+				me, key, errQuery)
+			os.Exit(1)
+		}
+		return key
+	}
+
+	return value
+}
+
+// queryWithError retrieves a secret.
+// key: aws-secretsmanager:region:name:json_field
+func (s *Secret) queryWithError(q queryFunc, prefix, key string) (string, error) {
+	const me = "queryWithError"
 
 	//
 	// parse key: aws-secretsmanager:region:name:json_field
@@ -137,12 +184,12 @@ func (s *Secret) query(q queryFunc, prefix, key string) string {
 	fields := strings.SplitN(key, ":", 4)
 	if len(fields) < 3 {
 		s.options.Printf("%s: missing fields: %s", me, key)
-		return key
+		return key, nil
 	}
 
 	if fields[0] != prefix {
 		s.options.Printf("%s: missing prefix='%s': %s", me, prefix, key)
-		return key
+		return key, nil
 	}
 
 	region := fields[1]
@@ -169,19 +216,14 @@ func (s *Secret) query(q queryFunc, prefix, key string) string {
 	if errSecret != nil {
 		s.options.Printf("%s: secret error: key='%s': %v",
 			me, key, errSecret)
-		if s.options.CrashOnQueryError {
-			s.options.Printf("%s: crashing on error: key='%s': %v",
-				me, key, errSecret)
-			os.Exit(1)
-		}
-		return key
+		return key, errSecret
 	}
 
 	if jsonField == "" {
 		// return scalar (non-JSON) secret
 		s.options.Printf("%s: key='%s' json_field=%s: value=%s",
 			me, key, jsonField, secretString)
-		return secretString
+		return secretString, nil
 	}
 
 	//
@@ -194,12 +236,7 @@ func (s *Secret) query(q queryFunc, prefix, key string) string {
 	if errJSON != nil {
 		s.options.Printf("%s: json error: key='%s': %v",
 			me, key, errJSON)
-		if s.options.CrashOnQueryError {
-			s.options.Printf("%s: crashing on error: key='%s': %v",
-				me, key, errJSON)
-			os.Exit(1)
-		}
-		return secretString
+		return secretString, errJSON
 	}
 
 	fieldValue := value[jsonField]
@@ -207,7 +244,7 @@ func (s *Secret) query(q queryFunc, prefix, key string) string {
 	s.options.Printf("%s: key='%s' json_field=%s: value=%s",
 		me, key, jsonField, fieldValue)
 
-	return fieldValue
+	return fieldValue, nil
 }
 
 //
