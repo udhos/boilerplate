@@ -2,6 +2,7 @@
 package secret
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -172,6 +173,39 @@ func (s *Secret) query(q queryFunc, prefix, key string) string {
 	return value
 }
 
+func parseSecretName(prefix, name string) (string, string, string, error) {
+
+	const me = "parseSecretName"
+
+	trimPrefix := strings.TrimPrefix(name, prefix)
+	if trimPrefix == name {
+		return "", "", "", fmt.Errorf("%s: missing prefix='%s': %s", me, prefix, name)
+	}
+	if len(trimPrefix) < 1 {
+		return "", "", "", fmt.Errorf("%s: secret too short prefix='%s': %s", me, prefix, name)
+	}
+
+	separator := trimPrefix[:1]
+
+	fields := strings.SplitN(name, separator, 4)
+	if len(fields) < 3 {
+		return "", "", "", fmt.Errorf("%s: missing fields: %s", me, name)
+	}
+
+	if fields[0] != prefix {
+		return "", "", "", fmt.Errorf("%s: missing prefix='%s': %s", me, prefix, name)
+	}
+
+	region := fields[1]
+	secretName := fields[2]
+	var jsonField string
+	if len(fields) > 3 {
+		jsonField = fields[3]
+	}
+
+	return region, secretName, jsonField, nil
+}
+
 // queryWithError retrieves a secret.
 // key: aws-secretsmanager:region:name:json_field
 func (s *Secret) queryWithError(q queryFunc, prefix, key string) (string, error) {
@@ -181,22 +215,29 @@ func (s *Secret) queryWithError(q queryFunc, prefix, key string) (string, error)
 	// parse key: aws-secretsmanager:region:name:json_field
 	//
 
-	fields := strings.SplitN(key, ":", 4)
-	if len(fields) < 3 {
-		s.options.Printf("%s: missing fields: %s", me, key)
-		return key, nil
-	}
+	/*
+		fields := strings.SplitN(key, ":", 4)
+		if len(fields) < 3 {
+			s.options.Printf("%s: missing fields: %s", me, key)
+			return key, nil
+		}
 
-	if fields[0] != prefix {
-		s.options.Printf("%s: missing prefix='%s': %s", me, prefix, key)
-		return key, nil
-	}
+		if fields[0] != prefix {
+			s.options.Printf("%s: missing prefix='%s': %s", me, prefix, key)
+			return key, nil
+		}
 
-	region := fields[1]
-	secretName := fields[2]
-	var jsonField string
-	if len(fields) > 3 {
-		jsonField = fields[3]
+		region := fields[1]
+		secretName := fields[2]
+		var jsonField string
+		if len(fields) > 3 {
+			jsonField = fields[3]
+		}
+	*/
+	region, secretName, jsonField, errParse := parseSecretName(prefix, key)
+	if errParse != nil {
+		s.options.Printf("%s: parse secret error: %v", me, errParse)
+		return key, nil
 	}
 
 	s.options.Printf("%s: key='%s' json_field=%s",
