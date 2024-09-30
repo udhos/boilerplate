@@ -88,6 +88,10 @@ func New(opt Options) *Secret {
 		opt.PrefixVault = DefaultVaultPrefix
 	}
 
+	if opt.PrefixProxy == "" {
+		opt.PrefixProxy = DefaultProxyPrefix
+	}
+
 	if opt.CacheTTL == 0 {
 		opt.CacheTTL = time.Minute
 	}
