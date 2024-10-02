@@ -139,33 +139,33 @@ func (s *Secret) RetrieveWithError(name string) (string, error) {
 
 	switch {
 	case strings.HasPrefix(name, s.options.PrefixSecretsManager):
-		name, err = s.queryWithError(querySecret, s.options.PrefixSecretsManager, name)
+		name, err = s.query(querySecret, s.options.PrefixSecretsManager, name)
 	case strings.HasPrefix(name, s.options.PrefixParameterStore):
-		name, err = s.queryWithError(queryParameter, s.options.PrefixParameterStore, name)
+		name, err = s.query(queryParameter, s.options.PrefixParameterStore, name)
 	case strings.HasPrefix(name, s.options.PrefixS3):
-		name, err = s.queryWithError(queryS3, s.options.PrefixS3, name)
+		name, err = s.query(queryS3, s.options.PrefixS3, name)
 	case strings.HasPrefix(name, s.options.PrefixDynamoDb):
-		name, err = s.queryWithError(queryDynamoDb, s.options.PrefixDynamoDb, name)
+		name, err = s.query(queryDynamoDb, s.options.PrefixDynamoDb, name)
 	case strings.HasPrefix(name, s.options.PrefixLambda):
-		name, err = s.queryWithError(queryLambda, s.options.PrefixLambda, name)
+		name, err = s.query(queryLambda, s.options.PrefixLambda, name)
 	case strings.HasPrefix(name, s.options.PrefixHTTP):
-		name, err = s.queryWithError(queryHTTP, s.options.PrefixHTTP, name)
+		name, err = s.query(queryHTTP, s.options.PrefixHTTP, name)
 	case strings.HasPrefix(name, s.options.PrefixVault):
-		name, err = s.queryWithError(queryVault, s.options.PrefixVault, name)
+		name, err = s.query(queryVault, s.options.PrefixVault, name)
 	case strings.HasPrefix(name, s.options.PrefixProxy):
-		name, err = s.queryWithError(queryProxy, s.options.PrefixProxy, name)
+		name, err = s.query(queryProxy, s.options.PrefixProxy, name)
 	}
 
 	return name, err
 }
 
-// query retrieves a secret.
+// querySimple retrieves a secret.
 // If an error is found, only crashes if CrashOnQueryError is set.
 // key: aws-secretsmanager:region:name:json_field
-func (s *Secret) query(q queryFunc, prefix, key string) string {
-	const me = "query"
+func (s *Secret) querySimple(q queryFunc, prefix, key string) string {
+	const me = "querySimple"
 
-	value, errQuery := s.queryWithError(q, prefix, key)
+	value, errQuery := s.query(q, prefix, key)
 
 	if errQuery != nil {
 		s.options.Printf("%s: error: key='%s': %v",
@@ -215,10 +215,10 @@ func parseSecretName(prefix, name string) (string, string, string, error) {
 	return region, secretName, jsonField, nil
 }
 
-// queryWithError retrieves a secret.
+// query retrieves a secret.
 // key: aws-secretsmanager:region:name:json_field
-func (s *Secret) queryWithError(q queryFunc, prefix, key string) (string, error) {
-	const me = "queryWithError"
+func (s *Secret) query(q queryFunc, prefix, key string) (string, error) {
+	const me = "query"
 
 	//
 	// parse key: aws-secretsmanager:region:name:json_field
@@ -230,8 +230,10 @@ func (s *Secret) queryWithError(q queryFunc, prefix, key string) (string, error)
 		return key, nil
 	}
 
-	s.options.Printf("%s: key='%s' json_field=%s",
-		me, key, jsonField)
+	if s.options.Debug {
+		s.options.Printf("%s: key='%s' json_field=%s",
+			me, key, jsonField)
+	}
 
 	//
 	// retrieve secret
@@ -241,8 +243,10 @@ func (s *Secret) queryWithError(q queryFunc, prefix, key string) (string, error)
 
 	secretString, errSecret := s.retrieve(q, region, secretName, jsonField)
 
-	s.options.Printf("%s: query: key='%s': elapsed: %v",
-		me, key, time.Since(begin))
+	if s.options.Debug {
+		s.options.Printf("%s: query: key='%s': elapsed: %v",
+			me, key, time.Since(begin))
+	}
 
 	if errSecret != nil {
 		s.options.Printf("%s: secret error: key='%s': %v",
@@ -272,8 +276,10 @@ func (s *Secret) queryWithError(q queryFunc, prefix, key string) (string, error)
 
 	fieldValue := value[jsonField]
 
-	s.options.Printf("%s: key='%s' json_field=%s: value=%s",
-		me, key, jsonField, fieldValue)
+	if s.options.Debug {
+		s.options.Printf("%s: key='%s' json_field=%s: value=%s",
+			me, key, jsonField, fieldValue)
+	}
 
 	return fieldValue, nil
 }
@@ -313,8 +319,10 @@ func (s *Secret) retrieve(q queryFunc, region, secretName, field string) (string
 			if elapsed < s.options.CacheTTL {
 				// live entry
 				secretString = cached.value
-				s.options.Printf("%s: from cache: %s=%s (elapsed=%s TTL=%s)",
-					me, cacheKey, secretString, elapsed, s.options.CacheTTL)
+				if s.options.Debug {
+					s.options.Printf("%s: from cache: %s=%s (elapsed=%s TTL=%s)",
+						me, cacheKey, secretString, elapsed, s.options.CacheTTL)
+				}
 				return secretString, nil
 			}
 			// stale entry
@@ -341,8 +349,9 @@ func (s *Secret) retrieve(q queryFunc, region, secretName, field string) (string
 	//
 	// retrieved value from service
 	//
-
-	s.options.Printf("%s: from store: %s=%s", me, secretName, secretString)
+	if s.options.Debug {
+		s.options.Printf("%s: from store: %s=%s", me, secretName, secretString)
+	}
 
 	if field != "" {
 		//
