@@ -30,7 +30,7 @@ type Options struct {
 	RoleArn              string
 	RoleSessionName      string
 	CrashOnQueryError    bool
-	CacheTTL             time.Duration // defaults to 1 minute
+	CacheTTLSeconds      int // cache TTL in seconds: -1=noCache 0=useDefault (60)
 	EndpointURL          string
 }
 
@@ -92,8 +92,10 @@ func New(opt Options) *Secret {
 		opt.PrefixProxy = DefaultProxyPrefix
 	}
 
-	if opt.CacheTTL == 0 {
-		opt.CacheTTL = time.Minute
+	if opt.CacheTTLSeconds < 0 {
+		opt.CacheTTLSeconds = 0 // disable cache
+	} else if opt.CacheTTLSeconds == 0 {
+		opt.CacheTTLSeconds = 60 // default 60 seconds
 	}
 
 	awsConfOptions := awsconfig.Options{
@@ -316,12 +318,13 @@ func (s *Secret) retrieve(q queryFunc, region, secretName, field string) (string
 		if found {
 			// cache hit
 			elapsed := time.Since(cached.created)
-			if elapsed < s.options.CacheTTL {
+			ttl := time.Second * time.Duration(s.options.CacheTTLSeconds)
+			if elapsed < ttl {
 				// live entry
 				secretString = cached.value
 				if s.options.Debug {
 					s.options.Printf("%s: from cache: %s=%s (elapsed=%s TTL=%s)",
-						me, cacheKey, secretString, elapsed, s.options.CacheTTL)
+						me, cacheKey, secretString, elapsed, ttl)
 				}
 				return secretString, nil
 			}
