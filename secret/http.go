@@ -13,10 +13,11 @@ import (
 )
 
 /*
-export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,/,eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=,Bearer secret:uri
+export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,443,/,eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=,Bearer secret:uri
 #   Method: GET
 # Protocol: https
 #     Host: tttt.lambda-url.us-east-1.on.aws
+#     Port: 443
 #     Path: /
 #     Body: {"parameter":"mongodb"} (base64 encoded as eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=)
 #    Token: Bearer secret
@@ -25,18 +26,24 @@ export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,/,eyJwYXJhbWV0ZX
 func queryHTTP(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, _ /*unused*/ awsConfigSolver, httpOptions string) (string, error) {
 	const me = "queryHTTP"
 
-	options := strings.SplitN(httpOptions, ",", 6)
-	if len(options) < 6 {
-		return "", fmt.Errorf("%s: bad http options, expecting 6 fields - got: '%s'",
-			me, httpOptions)
+	const minFields = 7
+	options := strings.SplitN(httpOptions, ",", minFields)
+	if len(options) < minFields {
+		return "", fmt.Errorf("%s: bad http options, expecting %d fields - got: '%s'",
+			me, minFields, httpOptions)
 	}
 
 	method := options[0]
 	proto := options[1]
 	host := options[2]
-	path := options[3]
-	body := options[4]
-	token := options[5]
+	port := strings.TrimSpace(options[3])
+	path := options[4]
+	body := options[5]
+	token := options[6]
+
+	if port != "" {
+		host += ":" + port
+	}
 
 	u, errJoin := url.JoinPath(proto+"://"+host, path)
 	if errJoin != nil {
