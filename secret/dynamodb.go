@@ -13,7 +13,7 @@ import (
 )
 
 // aws-dynamodb:region:table_name,key_name,key_value,value_attr[:field_name]
-func queryDynamoDb(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, getAwsConfig awsConfigSolver, dynamoOptions string) (string, error) {
+func queryDynamoDb(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, getAwsConfig AwsConfigSolver, dynamoOptions string) (string, error) {
 	const me = "queryDynamoDb"
 
 	options := strings.SplitN(dynamoOptions, ",", 4)

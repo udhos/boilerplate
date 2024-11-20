@@ -18,7 +18,7 @@ proxy||proto,host,port,secret_name[|field_name]
 export DB_URI=proxy||http,localhost,8080,vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri
 */
 func queryProxy(debug bool, printf boilerplate.FuncPrintf,
-	_ /*unused*/ awsConfigSolver, proxyOptions string) (string, error) {
+	_ /*unused*/ AwsConfigSolver, proxyOptions string) (string, error) {
 	const me = "queryProxy"
 
 	const fields = 4

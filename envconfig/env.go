@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/udhos/boilerplate/awsconfig"
 	"github.com/udhos/boilerplate/boilerplate"
 	"github.com/udhos/boilerplate/secret"
 )
@@ -40,9 +41,13 @@ func NewSimple(sessionName string) *Env {
 
 	log.Printf("envconfig.NewSimple: SECRET_ROLE_ARN='%s'", roleArn)
 
-	secretOptions := secret.Options{
-		RoleSessionName: sessionName,
+	awsConfOptions := awsconfig.Options{
 		RoleArn:         roleArn,
+		RoleSessionName: sessionName,
+	}
+
+	secretOptions := secret.Options{
+		AwsConfigSource: &secret.AwsConfigSource{AwsConfigOptions: awsConfOptions},
 	}
 	secret := secret.New(secretOptions)
 	envOptions := Options{

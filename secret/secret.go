@@ -27,11 +27,9 @@ type Options struct {
 	PrefixHTTP           string                 // defaults to "#http"
 	PrefixVault          string                 // defaults to "vault"
 	PrefixProxy          string                 // defaults to "proxy"
-	RoleArn              string
-	RoleSessionName      string
-	CrashOnQueryError    bool
-	CacheTTLSeconds      int // cache TTL in seconds: -1=noCache 0=useDefault (60)
-	EndpointURL          string
+	CrashOnQueryError    bool                   // require secret
+	CacheTTLSeconds      int                    // cache TTL in seconds: -1=noCache 0=useDefault (60)
+	AwsConfigSource      AwsConfigSolver
 }
 
 // Define default prefixes for Secrets Manager and Parameter Store.
@@ -48,13 +46,16 @@ const (
 
 // Secret holds context information for retrieving secrets.
 type Secret struct {
-	options    Options
-	cache      map[string]secret
-	awsConfSrc *awsConfigSource
+	options Options
+	cache   map[string]secret
 }
 
 // New creates a Secret context for retrieving secrets.
 func New(opt Options) *Secret {
+
+	if opt.AwsConfigSource == nil {
+		panic("AwsConfigSource is nil")
+	}
 
 	if opt.Printf == nil {
 		opt.Printf = log.Printf
@@ -98,17 +99,9 @@ func New(opt Options) *Secret {
 		opt.CacheTTLSeconds = 60 // default 60 seconds
 	}
 
-	awsConfOptions := awsconfig.Options{
-		Printf:          opt.Printf,
-		RoleArn:         opt.RoleArn,
-		RoleSessionName: opt.RoleSessionName,
-		EndpointURL:     opt.EndpointURL,
-	}
-
 	return &Secret{
-		options:    opt,
-		cache:      map[string]secret{},
-		awsConfSrc: &awsConfigSource{awsConfigOptions: awsConfOptions},
+		options: opt,
+		cache:   map[string]secret{},
 	}
 }
 
@@ -340,9 +333,9 @@ func (s *Secret) retrieve(q queryFunc, region, secretName, field string) (string
 	//
 	// retrieve from secrets manager
 	//
-	s.awsConfSrc.awsConfigOptions.Region = region
+	s.options.AwsConfigSource.setRegion(region)
 
-	value, errSecret := q(s.options.Debug, s.options.Printf, s.awsConfSrc, secretName)
+	value, errSecret := q(s.options.Debug, s.options.Printf, s.options.AwsConfigSource, secretName)
 	if errSecret != nil {
 		s.options.Printf("%s: secret query error: %v", me, errSecret)
 		return value, errSecret
@@ -369,22 +362,29 @@ func (s *Secret) retrieve(q queryFunc, region, secretName, field string) (string
 	return secretString, nil
 }
 
-type awsConfigSource struct {
-	awsConfigOptions awsconfig.Options
+// AwsConfigSource implements AwsConfigSolver.
+type AwsConfigSource struct {
+	AwsConfigOptions awsconfig.Options
 }
 
-func (s *awsConfigSource) get() (aws.Config, error) {
-	output, err := awsconfig.AwsConfig(s.awsConfigOptions)
+func (s *AwsConfigSource) get() (aws.Config, error) {
+	output, err := awsconfig.AwsConfig(s.AwsConfigOptions)
 	return output.AwsConfig, err
 }
 
-func (s *awsConfigSource) endpointURL() string {
-	return s.awsConfigOptions.EndpointURL
+func (s *AwsConfigSource) endpointURL() string {
+	return s.AwsConfigOptions.EndpointURL
 }
 
-type awsConfigSolver interface {
+func (s *AwsConfigSource) setRegion(region string) {
+	s.AwsConfigOptions.Region = region
+}
+
+// AwsConfigSolver provides aws configuration.
+type AwsConfigSolver interface {
 	get() (aws.Config, error)
 	endpointURL() string
+	setRegion(region string)
 }
 
-type queryFunc func(debug bool, printf boilerplate.FuncPrintf, getAwsConfig awsConfigSolver, name string) (string, error)
+type queryFunc func(debug bool, printf boilerplate.FuncPrintf, getAwsConfig AwsConfigSolver, name string) (string, error)

@@ -8,7 +8,7 @@ import (
 	"github.com/udhos/boilerplate/boilerplate"
 )
 
-func querySecret(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, getAwsConfig awsConfigSolver, secretName string) (string, error) {
+func querySecret(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, getAwsConfig AwsConfigSolver, secretName string) (string, error) {
 
 	awsConfig, errAwsConfig := getAwsConfig.get()
 	if errAwsConfig != nil {

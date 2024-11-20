@@ -13,7 +13,7 @@ import (
 /*
 export DB_URI=vault::token,dev-only-token,http,localhost,8200,secret/foo/key:field
 */
-func queryVault(debug bool, printf boilerplate.FuncPrintf, _ /*unused*/ awsConfigSolver, vaultOptions string) (string, error) {
+func queryVault(debug bool, printf boilerplate.FuncPrintf, _ /*unused*/ AwsConfigSolver, vaultOptions string) (string, error) {
 	const me = "queryVault"
 
 	//

@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"os"
 	"testing"
+
+	"github.com/udhos/boilerplate/awsconfig"
 )
 
 func TestHttp(t *testing.T) {
@@ -34,9 +36,13 @@ func TestHttp(t *testing.T) {
 
 	log.Printf("ROLE_ARN='%s'", roleArn)
 
-	secretOptions := Options{
-		RoleSessionName: "test",
+	awsConfOptions := awsconfig.Options{
 		RoleArn:         roleArn,
+		RoleSessionName: "test",
+	}
+
+	secretOptions := Options{
+		AwsConfigSource: &AwsConfigSource{AwsConfigOptions: awsConfOptions},
 	}
 	secret := New(secretOptions)
 	value := secret.Retrieve(name)

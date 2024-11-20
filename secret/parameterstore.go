@@ -8,7 +8,7 @@ import (
 	"github.com/udhos/boilerplate/boilerplate"
 )
 
-func queryParameter(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, getAwsConfig awsConfigSolver, parameterName string) (string, error) {
+func queryParameter(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, getAwsConfig AwsConfigSolver, parameterName string) (string, error) {
 
 	awsConfig, errAwsConfig := getAwsConfig.get()
 	if errAwsConfig != nil {

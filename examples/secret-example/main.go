@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/udhos/boilerplate/awsconfig"
 	"github.com/udhos/boilerplate/boilerplate"
 	"github.com/udhos/boilerplate/secret"
 )
@@ -18,9 +19,13 @@ func main() {
 
 	log.Printf("ROLE_ARN='%s'", roleArn)
 
-	secretOptions := secret.Options{
-		RoleSessionName: me,
+	awsConfOptions := awsconfig.Options{
 		RoleArn:         roleArn,
+		RoleSessionName: "test",
+	}
+
+	secretOptions := secret.Options{
+		AwsConfigSource: &secret.AwsConfigSource{AwsConfigOptions: awsConfOptions},
 	}
 	secret := secret.New(secretOptions)
 

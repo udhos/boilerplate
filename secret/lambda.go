@@ -19,7 +19,7 @@ export DB_URI=aws-lambda:us-east-1:parameters,parameter,mongodb,body:uri
 # Response field: body
 #       Response: {"statusCode": 200,"body": "{\"uri\": \"mongodb://localhost:27017/?retryWrites=false\"}"}
 */
-func queryLambda(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, getAwsConfig awsConfigSolver, lambdaOptions string) (string, error) {
+func queryLambda(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, getAwsConfig AwsConfigSolver, lambdaOptions string) (string, error) {
 	const me = "queryLambda"
 
 	options := strings.SplitN(lambdaOptions, ",", 4)
