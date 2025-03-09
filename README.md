@@ -36,7 +36,7 @@ aws-parameterstore: CONFIG_VAR=aws-parameterstore:region:parameter_name[:field_n
 aws-s3:             CONFIG_VAR=aws-s3:region:bucket_name,object_name[:field_name]
 aws-dynamodb:       CONFIG_VAR=aws-dynamodb:region:table_name,key_name,key_value,value_attr[:field_name]
 aws-lambda:         CONFIG_VAR=aws-lambda:region:func_name,key_name,key_value,body_field[:field_name]
-#http:              CONFIG_VAR=#http::method,proto,host,port,path,body_base64,token[:field_name]
+#http:              CONFIG_VAR=#http::method,proto,host,port,path,content_type,body_base64,token[:field_name]
 vault:              CONFIG_VAR=vault::token,token-value,proto,host,port,secret_path[:field_name]
 proxy:              CONFIG_VAR=proxy||proto,host,port,secret_name[|field_name]
 ```
@@ -57,7 +57,7 @@ export DB_URI=proxy||http,localhost,8080,vault::token,dev-only-token,http,localh
 echo -n '{"parameter":"mongodb"}' | base64
 eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=
 
-export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,443,/,eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=,Bearer secret:uri
+export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,443,/,text/plain,eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=,Bearer secret:uri
 ```
 
 ### DynamoDB
@@ -78,15 +78,16 @@ export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,443,/,eyJwYXJhbW
 
 ### HTTP
 
-    export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,443,/,eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=,Bearer secret:uri
-    #   Method: GET
-    # Protocol: https
-    #     Host: tttt.lambda-url.us-east-1.on.aws
-    #     Port: 443
-    #     Path: /
-    #     Body: {"parameter":"mongodb"} (base64 encoded as eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=)
-    #    Token: Bearer secret
-    # Response: {"uri":"mongodb://127.0.0.1:27001/?retryWrites=false"}
+    export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,443,/,text/plain,eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=,Bearer secret:uri
+    #       Method: GET
+    #     Protocol: https
+    #         Host: tttt.lambda-url.us-east-1.on.aws
+    #         Port: 443
+    #         Path: /
+    # Content-Type: text-plain
+    #         Body: {"parameter":"mongodb"} (base64 encoded as eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=)
+    #        Token: Bearer secret
+    #     Response: {"uri":"mongodb://127.0.0.1:27001/?retryWrites=false"}
 
 ### Vault
 

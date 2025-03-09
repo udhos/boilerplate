@@ -13,33 +13,39 @@ import (
 )
 
 /*
-export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,443,/,eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=,Bearer secret:uri
-#   Method: GET
-# Protocol: https
-#     Host: tttt.lambda-url.us-east-1.on.aws
-#     Port: 443
-#     Path: /
-#     Body: {"parameter":"mongodb"} (base64 encoded as eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=)
-#    Token: Bearer secret
-# Response: {"uri":"mongodb://127.0.0.1:27001/?retryWrites=false"}
+export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,443,/,text/plain,eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=,Bearer secret:uri
+#       Method: GET
+#     Protocol: https
+#         Host: tttt.lambda-url.us-east-1.on.aws
+#         Port: 443
+#         Path: /
+# Content-Type: text/plain
+#         Body: {"parameter":"mongodb"} (base64 encoded as eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=)
+#        Token: Bearer secret
+#     Response: {"uri":"mongodb://127.0.0.1:27001/?retryWrites=false"}
 */
 func queryHTTP(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, _ /*unused*/ AwsConfigSolver, httpOptions string) (string, error) {
 	const me = "queryHTTP"
 
-	const minFields = 7
+	const minFields = 8
 	options := strings.SplitN(httpOptions, ",", minFields)
 	if len(options) < minFields {
 		return "", fmt.Errorf("%s: bad http options, expecting %d fields - got: '%s'",
 			me, minFields, httpOptions)
 	}
 
+	for i, o := range options {
+		options[i] = strings.TrimSpace(o)
+	}
+
 	method := options[0]
 	proto := options[1]
 	host := options[2]
-	port := strings.TrimSpace(options[3])
+	port := options[3]
 	path := options[4]
-	body := options[5]
-	token := options[6]
+	contentType := options[5]
+	body := options[6]
+	token := options[7]
 
 	if port != "" {
 		host += ":" + port
@@ -60,8 +66,13 @@ func queryHTTP(_ /*debug*/ bool, _ /*printf*/ boilerplate.FuncPrintf, _ /*unused
 		return "", errReq
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", token)
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+
+	if token != "" {
+		req.Header.Set("Authorization", token)
+	}
 
 	client := http.DefaultClient
 	resp, errDo := client.Do(req)

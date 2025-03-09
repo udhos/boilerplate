@@ -19,8 +19,6 @@ func TestHttp(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	//"#http::GET,https,ttt.lambda-url.us-east-1.on.aws,/,eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=,Bearer secret:uri"
-
 	u, errURL := url.Parse(ts.URL)
 	if errURL != nil {
 		t.Errorf("url: %v", errURL)
@@ -30,7 +28,7 @@ func TestHttp(t *testing.T) {
 	host := u.Hostname()
 	port := u.Port()
 
-	name := fmt.Sprintf("#http::GET,http,%s,%s,/,eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=,Bearer secret:uri", host, port)
+	name := fmt.Sprintf("#http::GET,http,%s,%s,/,text/plain,eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=,Bearer secret:uri", host, port)
 
 	roleArn := os.Getenv("ROLE_ARN")
 
