@@ -84,7 +84,7 @@ export DB_URI=#http::GET,https,tttt.lambda-url.us-east-1.on.aws,443,/,text/plain
     #         Host: tttt.lambda-url.us-east-1.on.aws
     #         Port: 443
     #         Path: /
-    # Content-Type: text-plain
+    # Content-Type: text/plain
     #         Body: {"parameter":"mongodb"} (base64 encoded as eyJwYXJhbWV0ZXIiOiJtb25nb2RiIn0=)
     #        Token: Bearer secret
     #     Response: {"uri":"mongodb://127.0.0.1:27001/?retryWrites=false"}
