@@ -251,8 +251,10 @@ func (s *Secret) query(q queryFunc, prefix, key string) (string, error) {
 
 	if jsonField == "" {
 		// return scalar (non-JSON) secret
-		s.options.Printf("%s: key='%s' json_field=%s: value=%s",
-			me, key, jsonField, secretString)
+		if s.options.Debug {
+			s.options.Printf("%s: key='%s' json_field=%s: value=%s",
+				me, key, jsonField, secretString)
+		}
 		return secretString, nil
 	}
 
