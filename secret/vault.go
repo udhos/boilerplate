@@ -119,9 +119,7 @@ func queryVault(debug bool, printf boilerplate.FuncPrintf, _ /*unused*/ AwsConfi
 }
 
 func vaultClientFromToken(u, token string) (*vault.Client, error) {
-	config := vault.DefaultConfig()
-	config.Address = u
-	client, err := vault.NewClient(config)
+	client, err := vaultClient(u)
 	if err != nil {
 		return nil, err
 	}
@@ -130,13 +128,9 @@ func vaultClientFromToken(u, token string) (*vault.Client, error) {
 }
 
 func vaultClientFromAwsRole(u, role string) (*vault.Client, error) {
-
-	config := vault.DefaultConfig() // modify for more granular configuration
-	config.Address = u
-
-	client, err := vault.NewClient(config)
+	client, err := vaultClient(u)
 	if err != nil {
-		return nil, fmt.Errorf("unable to initialize Vault client: %w", err)
+		return nil, err
 	}
 
 	awsAuth, err := auth.NewAWSAuth(
@@ -157,6 +151,17 @@ func vaultClientFromAwsRole(u, role string) (*vault.Client, error) {
 		return nil, fmt.Errorf("no auth info was returned after login")
 	}
 
+	return client, nil
+}
+
+func vaultClient(vaultURL string) (*vault.Client, error) {
+	config := vault.DefaultConfig() // modify for more granular configuration
+	config.Address = vaultURL
+	client, err := vault.NewClient(config)
+	if err != nil {
+		return nil, fmt.Errorf("vaultClient: new client error: url=%s: %w",
+			vaultURL, err)
+	}
 	return client, nil
 }
 

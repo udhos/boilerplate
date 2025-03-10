@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/udhos/boilerplate/awsconfig"
 	"github.com/udhos/boilerplate/boilerplate"
 	"github.com/udhos/boilerplate/secret"
 )
@@ -15,7 +16,15 @@ func main() {
 	log.Println(boilerplate.LongVersion(me))
 
 	debug := os.Getenv("DEBUG")
-	secretOptions := secret.Options{Debug: debug != ""}
+
+	awsConfOptions := awsconfig.Options{
+		RoleSessionName: "vault-example",
+	}
+
+	secretOptions := secret.Options{
+		Debug:           debug != "",
+		AwsConfigSource: &secret.AwsConfigSource{AwsConfigOptions: awsConfOptions},
+	}
 	secret := secret.New(secretOptions)
 
 	log.Print("TOKEN: export VAULT=vault::token,dev-only-token,http,localhost,8200,secret/myapp1/mongodb:uri")

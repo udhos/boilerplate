@@ -291,6 +291,12 @@ NOTE: Vault client sdk has some limitations: (1) It does no support AWS_PROFILE.
 ```
 # Login into $CLIENT_IAM_ROLE_ARN with `aws sts assume-role` and put values into env vars.
 
+aws sts assume-role --role-arn $CLIENT_IAM_ROLE_ARN --role-session-name vault-example | gojq -r .Credentials > /tmp/creds.json
+export AWS_ACCESS_KEY_ID=$(gojq -r .AccessKeyId < /tmp/creds.json)
+export AWS_SECRET_ACCESS_KEY=$(gojq -r .SecretAccessKey < /tmp/creds.json)
+export AWS_SESSION_TOKEN=$(gojq -r .SessionToken < /tmp/creds.json)
+aws sts get-caller-identity
+
 # Then run:
 
 export VAULT=vault::,dev-role-iam,http,localhost,8200,secret/myapp1/mongodb:uri
