@@ -141,7 +141,7 @@ func (e *Env) Int(name string, defaultValue int) int {
 func (e *Env) Uint64(name string, defaultValue uint64) uint64 {
 	str := e.getEnv(name)
 	if str != "" {
-		value, errConv := strconv.ParseUint(name, 10, 64)
+		value, errConv := strconv.ParseUint(str, 10, 64)
 		if errConv == nil {
 			e.options.Printf("%s=[%s] using %s=%v default=%v", name, str, name, value, defaultValue)
 			return value
@@ -158,7 +158,24 @@ func (e *Env) Uint64(name string, defaultValue uint64) uint64 {
 func (e *Env) Int64(name string, defaultValue int64) int64 {
 	str := e.getEnv(name)
 	if str != "" {
-		value, errConv := strconv.ParseInt(name, 10, 64)
+		value, errConv := strconv.ParseInt(str, 10, 64)
+		if errConv == nil {
+			e.options.Printf("%s=[%s] using %s=%v default=%v", name, str, name, value, defaultValue)
+			return value
+		}
+		e.options.Printf("bad %s=[%s]: error: %v", name, str, errConv)
+	}
+	e.options.Printf("%s=[%s] using %s=%v default=%v", name, str, name, defaultValue, defaultValue)
+	return defaultValue
+}
+
+// Float64 extracts float64 value from env var.
+// It returns the provided defaultValue if the env var is empty.
+// The value returned is also recorded in logs.
+func (e *Env) Float64(name string, defaultValue float64) float64 {
+	str := e.getEnv(name)
+	if str != "" {
+		value, errConv := strconv.ParseFloat(str, 64)
 		if errConv == nil {
 			e.options.Printf("%s=[%s] using %s=%v default=%v", name, str, name, value, defaultValue)
 			return value
