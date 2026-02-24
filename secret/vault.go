@@ -2,6 +2,7 @@ package secret
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -112,7 +113,17 @@ func queryVault(debug bool, printf boilerplate.FuncPrintf, _ /*unused*/ AwsConfi
 	str, isStr := value.(string)
 
 	if !isStr {
-		return "", fmt.Errorf("%s: not a string: %T: %v", me, value, value)
+		if debug {
+			printf("DEBUG %s: value is not a string: %T: %v", me, value, value)
+		}
+
+		// marshal non-string values to JSON so that we can return them as strings
+
+		data, errMarshal := json.Marshal(value)
+		if errMarshal != nil {
+			return "", fmt.Errorf("ERROR %s: unable to marshal non-string value to JSON: %T: %v: %v", me, value, value, errMarshal)
+		}
+		return string(data), nil
 	}
 
 	return str, nil
