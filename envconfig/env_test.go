@@ -44,6 +44,11 @@ func TestFloat64(t *testing.T) {
 	if v != 13 {
 		t.Errorf("expected=13 got=%f", v)
 	}
+
+	t.Setenv("VALUE", "0")
+	if zero := env.Float64("VALUE", 1); zero != 0 {
+		t.Errorf("expected=0 got=%v", zero)
+	}
 }
 
 func TestInt(t *testing.T) {
@@ -55,6 +60,11 @@ func TestInt(t *testing.T) {
 
 	if v != 13 {
 		t.Errorf("expected=13 got=%d", v)
+	}
+
+	t.Setenv("VALUE", "0")
+	if zero := env.Int("VALUE", 1); zero != 0 {
+		t.Errorf("expected=0 got=%v", zero)
 	}
 }
 
@@ -68,6 +78,11 @@ func TestInt64(t *testing.T) {
 	if v != 13 {
 		t.Errorf("expected=13 got=%d", v)
 	}
+
+	t.Setenv("VALUE", "0")
+	if zero := env.Int64("VALUE", 1); zero != 0 {
+		t.Errorf("expected=0 got=%v", zero)
+	}
 }
 
 func TestUint64(t *testing.T) {
@@ -79,5 +94,10 @@ func TestUint64(t *testing.T) {
 
 	if v != 13 {
 		t.Errorf("expected=13 got=%d", v)
+	}
+
+	t.Setenv("VALUE", "0")
+	if zero := env.Uint64("VALUE", 1); zero != 0 {
+		t.Errorf("expected=0 got=%v", zero)
 	}
 }
